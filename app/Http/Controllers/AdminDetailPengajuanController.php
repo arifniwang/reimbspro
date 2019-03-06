@@ -3,7 +3,7 @@
 use Session;
 use Request;
 use DB;
-use CRUDBooster;
+use crocodicstudio\crudbooster\helpers\CRUDBooster;
 
 class AdminDetailPengajuanController extends \crocodicstudio\crudbooster\controllers\CBController
 {
@@ -154,6 +154,15 @@ class AdminDetailPengajuanController extends \crocodicstudio\crudbooster\control
         */
         $js = '';
         if (Request::get('parent_id')){
+            $save_notif['updated_at'] = date('Y-m-d H:i:s');
+            $save_notif['is_read'] = 1;
+            DB::table('cms_notifications')
+                ->where('id_cms_users',CRUDBooster::myId())
+                ->where('id_relation',Request::get('parent_id'))
+                ->where('is_read','!=',1)
+                ->where('type',1)
+                ->update($save_notif);
+
             $pengajuan = DB::table('pengajuan')
                 ->select('pengajuan.*','users.name as pegawai')
                 ->join('users','users.id','=','pengajuan.id_users')
