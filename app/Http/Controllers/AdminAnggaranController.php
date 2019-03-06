@@ -39,6 +39,9 @@ class AdminAnggaranController extends \crocodicstudio\crudbooster\controllers\CB
         $this->col[] = array("label" => "Nominal", "name" => "nominal","callback"=>function($row){
             return number_format($row->nominal,0,'.',',');
         });
+        $this->col[] = array("label" => "Terpakai", "name" => "reimbursement","callback"=>function($row){
+            return number_format($row->nominal,0,'.',',');
+        });
         # END COLUMNS DO NOT REMOVE THIS LINE
 
         # START FORM DO NOT REMOVE THIS LINE
@@ -77,6 +80,10 @@ class AdminAnggaranController extends \crocodicstudio\crudbooster\controllers\CB
             "validation" => "required|min:0", "value"=>$default_bulan];
         $this->form[] = ["label" => "Nominal", "name" => "nominal", "type" => "money", "required" => TRUE,
             "validation" => "required|min:1|max:255"];
+        if (Request::segment(3) == 'detail'){
+            $this->form[] = ["label" => "Terpakai", "name" => "reimbursement", "type" => "money", "required" => TRUE,
+                "validation" => "required|min:1|max:255"];
+        }
 
         # END FORM DO NOT REMOVE THIS LINE
 
