@@ -21,7 +21,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $this->button_action_style = "button_icon";
         $this->button_add = FALSE;
         $this->button_delete = TRUE;
-        $this->button_edit = TRUE;
+        $this->button_edit = FALSE;
         $this->button_detail = FALSE;
         $this->button_show = TRUE;
         $this->button_filter = FALSE;
@@ -39,6 +39,16 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $this->col[] = array("label" => "Total", "name" => "total_nominal", "callback" => function ($row) {
             return number_format($row->total_nominal, 0, ',', '.');
         });
+        $this->col[] = array("label" => "Status", "name" => "status", "callback" => function ($row) {
+            if ($row->status == 'Diterima') {
+                return '<span class="badge badge-success">' . $row->status . '</span>';
+            } elseif ($row->status == 'Ditolak') {
+                return '<span class="badge badge-danger">' . $row->status . '</span>';
+            } else {
+                return '<span class="badge badge-warning">' . $row->status . '</span>';
+            }
+        });
+        $this->col[] = array("label" => "Tangal Pengajuan", "name" => "created_at");
 
         # END COLUMNS DO NOT REMOVE THIS LINE
         # START FORM DO NOT REMOVE THIS LINE
@@ -84,6 +94,10 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         |
         */
         $this->addaction = array();
+        $this->addaction[] = ['label' => 'Approve', 'url' => CRUDBooster::mainpath('approve/[id]'), 'icon' => 'fa fa-check',
+            'color' => 'info', 'showIf' => "[status] == 'Diproses'", 'confirmation' => true];
+        $this->addaction[] = ['label' => 'Reject', 'url' => CRUDBooster::mainpath('reject/[id]'), 'icon' => 'fa fa-ban',
+            'color' => 'danger', 'showIf' => "[status] == 'Diproses'", 'confirmation' => true];
 
 
         /*
@@ -154,6 +168,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $js = '';
         if (Request::segment(3) == '') {
             $js .= '
+                $("#table_dashboard").find("thead tr th:nth-child(7)").attr("width","150px");
                 $("#table_dashboard").find("thead tr th:nth-child(4)").attr("width","400px");
             ';
         }
@@ -201,7 +216,54 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         | $this->style_css = ".style{....}";
         |
         */
-        $this->style_css = NULL;
+        $this->style_css = '
+            .badge {
+                padding: 1px 9px 2px;
+                font-size: 12.025px;
+                font-weight: bold;
+                white-space: nowrap;
+                color: #ffffff;
+                background-color: #999999;
+                -webkit-border-radius: 9px;
+                -moz-border-radius: 9px;
+                border-radius: 9px;
+            }
+            .badge:hover {
+                color: #ffffff;
+                text-decoration: none;
+                cursor: pointer;
+            }
+            .badge-error {
+                background-color: #b94a48;
+            }
+            .badge-error:hover {
+                background-color: #953b39;
+            }
+            .badge-warning {
+                background-color: #f89406;
+            }
+            .badge-warning:hover {
+                background-color: #c67605;
+            }
+            .badge-success {
+                background-color: #468847;
+            }
+            .badge-success:hover {
+                background-color: #356635;
+            }
+            .badge-info {
+                background-color: #3a87ad;
+            }
+            .badge-info:hover {
+                background-color: #2d6987;
+            }
+            .badge-inverse {
+                background-color: #333333;
+            }
+            .badge-inverse:hover {
+                background-color: #1a1a1a;
+            }
+        ';
 
 
         /*
