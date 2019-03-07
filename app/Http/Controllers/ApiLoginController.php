@@ -24,8 +24,9 @@ class ApiLoginController extends \crocodicstudio\crudbooster\controllers\ApiCont
         $validator['password'] = 'required';
         CRUDBooster::Validator($validator);
 
-        $phone = $postdata['phone'];
-        $password = $postdata['password'];
+        $phone = Request::input('phone');
+        $password = Request::input('password');
+        $regid = Request::input('regid');
 
         $cek = DB::table('users')
             ->whereNull('deleted_at')
@@ -47,6 +48,20 @@ class ApiLoginController extends \crocodicstudio\crudbooster\controllers\ApiCont
             $result['image'] = ($cek->image == '' ? '' : url($cek->image));
             $result['name'] = $cek->name;
             $result['phone'] = $cek->phone;
+
+            $cek_regid = DB::table('users_regid')
+                ->where('regid', $regid)
+                ->first();
+            if (empty($cek_regid)) {
+                $save_regid['created_at'] = date('Y-m-d H:i:s');
+                $save_regid['id_users'] = $cek->id;
+                $save_regid['regid'] = $regid;
+                DB::table('users_regid')->insert($save_regid);
+            } elseif ($cek_regid->id_users != $cek->id) {
+                $save_regid['updated_at'] = date('Y-m-d H:i:s');
+                $save_regid['id_users'] = $cek->id;
+                DB::table('users_regid')->where('id', $cek_regid->id)->update($save_regid);
+            }
         }
 
         $res = response()->json($result);

@@ -18,6 +18,8 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 
     public function hook_before(&$postdata)
     {
+//        $view
+
         //This method will be execute before run the main process
         $validator['id'] = 'required';
         $validator['name'] = 'required';
