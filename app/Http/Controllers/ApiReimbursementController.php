@@ -284,10 +284,8 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
         }
         $attachments = ($config['attachments']) ?: [];
 
-        Mail::send("email/email_template", ['content' => $html], function ($message) use (
-            $to, $subject, $template,
-            $attachments, $cc
-        ) {
+        Mail::send("email/email_template", ['content' => $html], function ($message)
+        use ($to, $subject, $template, $attachments, $cc) {
             $message->priority(1);
             $message->to($to);
 

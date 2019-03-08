@@ -3,10 +3,31 @@
 use Session;
 use Request;
 use DB;
-use CRUDBooster;
+use crocodicstudio\crudbooster\helpers\CRUDBooster;
 
 class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\CBController
 {
+    public function getApprove($id)
+    {
+        $pengajuan = DB::table('pengajuan')
+            ->where('id', $id)
+            ->first();
+
+        if (empty($pengajuan)) {
+            CRUDBooster::redirectBack('Pengajuan tidak ditemukan');
+        } elseif ($pengajuan->deleted_at != '') {
+            $result['api_status'] = 0;
+            $result['api_code'] = 401;
+            $result['api_message'] = 'Pengajuan ini sudah dihapus';
+        } elseif ($pengajuan->status = '') {
+
+        }
+    }
+
+    public function getReject($id)
+    {
+        return $id;
+    }
 
     public function cbInit()
     {

@@ -15,3 +15,6 @@ Route::get('/', function () {
     return redirect('admin');
 //    return view('welcome');
 });
+
+Route::get('/update-password/{key}','UpdatePasswordController@Index');
+Route::post('/update-password/{key}','UpdatePasswordController@UpdatePassword');

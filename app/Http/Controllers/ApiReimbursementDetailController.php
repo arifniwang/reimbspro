@@ -39,14 +39,14 @@ class ApiReimbursementDetailController extends \crocodicstudio\crudbooster\contr
             $result['api_status'] = 0;
             $result['api_code'] = 440;
             $result['api_message'] = 'Akun anda tidak dapat digunakan, silahkan login ulang';
-        } elseif ($pengajuan->deleted_at != '') {
-            $result['api_status'] = 0;
-            $result['api_code'] = 401;
-            $result['api_message'] = 'Pengajuan ini sudah dihapus oleh admin';
         } elseif (empty($pengajuan) || $pengajuan->id_users != $id) {
             $result['api_status'] = 0;
             $result['api_code'] = 401;
             $result['api_message'] = 'Data pengajuan tidak ditemukan';
+        } elseif ($pengajuan->deleted_at != '') {
+            $result['api_status'] = 0;
+            $result['api_code'] = 401;
+            $result['api_message'] = 'Pengajuan ini sudah dihapus oleh admin';
         } else {
             $nota = DB::table('pengajuan_detail')
                 ->select('pengajuan_detail.id', 'pengajuan_detail.image', 'pengajuan_detail.date', 'pengajuan_detail.nominal',
