@@ -16,17 +16,89 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         if (empty($pengajuan)) {
             CRUDBooster::redirectBack('Pengajuan tidak ditemukan');
         } elseif ($pengajuan->deleted_at != '') {
-            $result['api_status'] = 0;
-            $result['api_code'] = 401;
-            $result['api_message'] = 'Pengajuan ini sudah dihapus';
-        } elseif ($pengajuan->status = '') {
+            CRUDBooster::redirectBack('Pengajuan ini sudah dihapus');
+        } elseif ($pengajuan->status == 'Disetujui') {
+            CRUDBooster::redirectBack('Pengajuan ini sudah disetujui');
+        } elseif ($pengajuan->status == 'Ditolak') {
+            CRUDBooster::redirectBack('Pengajuan ini sudah ditolak');
+        } else {
+            /**
+             * UPDATE STATUS
+             */
+            $save['updated_at'] = date('Y-m-d H:i:s');
+            $save['datetime_approval'] = date('Y-m-d H:i:s');
+            $save['year'] = date('Y');
+            $save['month'] = number_format(date('m'), 0, '', '');
+            $save['status'] = 'Disetujui';
+            DB::table('pengajuan')->where('id',$id)->update($save);
 
+            /**
+             * SEND NOTIFICATION TO APPS
+             */
+            $save_usr_notif['created_at'] = date('Y-m-d H:i:s');
+            $save_usr_notif['id_pengajuan'] = $id;
+            $save_usr_notif['title'] = 'REIMBURSEMENT BERHASIL';
+            $save_usr_notif['content'] = 'Pengajuan “' . $pengajuan->name . '” berhasil dikirim dan diterima oleh administrator';
+            $save_usr_notif['date'] = date('Y-m-d');
+            $save_usr_notif['type'] = 'Disetujui';
+            DB::table('users_notification')->insert($save_usr_notif);
+
+            $regid = DB::table('users_regid')
+                ->where('id_users', $pengajuan->id_users)
+                ->pluck('regid')
+                ->toArray();
+            $data_notif['title'] = $save_usr_notif['title'];
+            $data_notif['content'] = $save_usr_notif['content'];
+            $data_notif['id_pengajuan'] = $id;
+            CRUDBooster::sendFCM($regid, $data_notif);
         }
     }
 
     public function getReject($id)
     {
-        return $id;
+        $pengajuan = DB::table('pengajuan')
+            ->where('id', $id)
+            ->first();
+
+        if (empty($pengajuan)) {
+            CRUDBooster::redirectBack('Pengajuan tidak ditemukan');
+        } elseif ($pengajuan->deleted_at != '') {
+            CRUDBooster::redirectBack('Pengajuan ini sudah dihapus');
+        } elseif ($pengajuan->status == 'Disetujui') {
+            CRUDBooster::redirectBack('Pengajuan ini sudah disetujui');
+        } elseif ($pengajuan->status == 'Ditolak') {
+            CRUDBooster::redirectBack('Pengajuan ini sudah ditolak');
+        } else {
+            /**
+             * UPDATE STATUS
+             */
+            $save['updated_at'] = date('Y-m-d H:i:s');
+            $save['datetime_approval'] = date('Y-m-d H:i:s');
+            $save['year'] = date('Y');
+            $save['month'] = number_format(date('m'), 0, '', '');
+            $save['status'] = 'Ditolak';
+            DB::table('pengajuan')->where('id',$id)->update($save);
+
+            /**
+             * SEND NOTIFICATION TO APPS
+             */
+            $save_usr_notif['created_at'] = date('Y-m-d H:i:s');
+            $save_usr_notif['id_pengajuan'] = $id;
+            $save_usr_notif['title'] = 'REIMBURSEMENT DITOLAK';
+            $save_usr_notif['content'] = 'Pengajuan “' . $pengajuan->name . '” berhasil dikirim dan ditolak oleh administrator';
+            $save_usr_notif['date'] = date('Y-m-d');
+            $save_usr_notif['type'] = 'Ditolak';
+            DB::table('users_notification')->insert($save_usr_notif);
+
+            $regid = DB::table('users_regid')
+                ->where('id_users', $pengajuan->id_users)
+                ->pluck('regid')
+                ->toArray();
+            $data_notif['title'] = $save_usr_notif['title'];
+            $data_notif['content'] = $save_usr_notif['content'];
+            $data_notif['id_pengajuan'] = $id;
+            CRUDBooster::sendFCM($regid, $data_notif);
+        }
     }
 
     public function cbInit()

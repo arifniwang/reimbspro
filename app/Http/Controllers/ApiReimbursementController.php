@@ -189,7 +189,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     /**
                      * SEND NOTIFICATION TO APPS
                      */
-                    $save_usr_notif['created_at'] = date('Y-m-d');
+                    $save_usr_notif['created_at'] = date('Y-m-d H:i:s');
                     $save_usr_notif['id_pengajuan'] = $id_pengajuan;
                     $save_usr_notif['title'] = 'REIMBURSEMENT DIPROSES';
                     $save_usr_notif['content'] = 'Pengajuan “' . Request::input('name') . '” berhasil dikirim dan sedang diproses';
