@@ -4,6 +4,7 @@ use Session;
 use Request;
 use DB;
 use crocodicstudio\crudbooster\helpers\CRUDBooster;
+use Config;
 
 class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers\ApiController
 {
@@ -18,7 +19,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 
     public function hook_before(&$postdata)
     {
-//        $view
+        dd(self::sendEmail($config = []));
 
         //This method will be execute before run the main process
         $validator['id'] = 'required';
@@ -32,7 +33,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
         $nota = file_get_contents($nota);
         $valid_json = CRUDBooster::isJSON($nota);
         $now = date('Y-m-d H:i:s');
-        $created_at = (Request::input('created_at') == '' ? '' : date('Y-m-d H:i:s',strtotime(Request::input('created_at'))));
+        $created_at = (Request::input('created_at') == '' ? '' : date('Y-m-d H:i:s', strtotime(Request::input('created_at'))));
 
         $users = DB::table('users')
             ->where('id', Request::input('id'))
@@ -168,6 +169,67 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
     {
         //This method will be execute after run the main process
 
+    }
+
+    public function sendEmail($config = [])
+    {
+
+        \Config::set('mail.driver', CRUDBooster::getSetting('smtp_driver'));
+        \Config::set('mail.host', CRUDBooster::getSetting('smtp_host'));
+        \Config::set('mail.port', CRUDBooster::getSetting('smtp_port'));
+        \Config::set('mail.username', CRUDBooster::getSetting('smtp_username'));
+        \Config::set('mail.password', CRUDBooster::getSetting('smtp_password'));
+
+        $to = $config['to'];
+        $data = $config['data'];
+        $template = $config['template'];
+
+        $template = file_get_contents(base_path('resources/views/email/pengajuan.blade.php'));
+        return $template;
+        foreach ($data as $key => $val) {
+            $html = str_replace('[' . $key . ']', $val, $html);
+            $template->subject = str_replace('[' . $key . ']', $val, $template->subject);
+        }
+        $subject = $template->subject;
+        $attachments = ($config['attachments']) ?: [];
+
+        if ($config['send_at'] != null) {
+            $a = [];
+            $a['send_at'] = $config['send_at'];
+            $a['email_recipient'] = $to;
+            $a['email_from_email'] = $template->from_email ?: CRUDBooster::getSetting('email_sender');
+            $a['email_from_name'] = $template->from_name ?: CRUDBooster::getSetting('appname');
+            $a['email_cc_email'] = $template->cc_email;
+            $a['email_subject'] = $subject;
+            $a['email_content'] = $html;
+            $a['email_attachments'] = serialize($attachments);
+            $a['is_sent'] = 0;
+            DB::table('cms_email_queues')->insert($a);
+
+            return true;
+        }
+
+        \Mail::send("crudbooster::emails.blank", ['content' => $html], function ($message) use ($to, $subject, $template, $attachments) {
+            $message->priority(1);
+            $message->to($to);
+
+            if ($template->from_email) {
+                $from_name = ($template->from_name) ?: CRUDBooster::getSetting('appname');
+                $message->from($template->from_email, $from_name);
+            }
+
+            if ($template->cc_email) {
+                $message->cc($template->cc_email);
+            }
+
+            if (count($attachments)) {
+                foreach ($attachments as $attachment) {
+                    $message->attach($attachment);
+                }
+            }
+
+            $message->subject($subject);
+        });
     }
 
 }

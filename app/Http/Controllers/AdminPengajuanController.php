@@ -40,7 +40,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             return number_format($row->total_nominal, 0, ',', '.');
         });
         $this->col[] = array("label" => "Status", "name" => "status", "callback" => function ($row) {
-            if ($row->status == 'Diterima') {
+            if ($row->status == 'Disetujui') {
                 return '<span class="badge badge-success">' . $row->status . '</span>';
             } elseif ($row->status == 'Ditolak') {
                 return '<span class="badge badge-danger">' . $row->status . '</span>';
