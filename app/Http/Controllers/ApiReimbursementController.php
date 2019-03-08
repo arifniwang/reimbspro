@@ -5,6 +5,7 @@ use Request;
 use DB;
 use crocodicstudio\crudbooster\helpers\CRUDBooster;
 use Config;
+use Mail;
 
 class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers\ApiController
 {
@@ -19,8 +20,6 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 
     public function hook_before(&$postdata)
     {
-        dd(self::sendEmail($config = []));
-
         //This method will be execute before run the main process
         $validator['id'] = 'required';
         $validator['name'] = 'required';
@@ -60,8 +59,8 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
             $result['api_message'] = 'Json harus berupa array';
         } else {
             $json_message = '';
-            $total_nominal = 0;
             $json = json_decode($nota);
+            $total_nominal = 0;
             $save = [];
 
             /**
@@ -102,7 +101,6 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                 $result['api_code'] = 401;
                 $result['api_message'] = $json_message;
             } else {
-
                 /**
                  * SAVE PENGAJUAN
                  */
@@ -123,9 +121,48 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     /**
                      * SAVE DETAIL PENGAJUAN
                      */
+                    $table = '';
+                    $no = 1;
                     foreach ($save as $key => $value) {
+                        $image = CRUDBooster::uploadBase64($value['image']);
                         $save[$key]['id_pengajuan'] = $id_pengajuan;
-                        $save[$key]['image'] = CRUDBooster::uploadBase64($value['image']);
+                        $save[$key]['image'] = $image;
+
+                        $kategori = DB::table('kategori')
+                            ->where('id', $row->kategori)
+                            ->first();
+
+                        /**
+                         * MAKE TABLE EMAIL
+                         */
+                        $table .= '<tr>
+                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                    vertical-align: top;font-size: 12px;">
+                                ' . $no++ . '
+                            </td>
+                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                    vertical-align: top;font-size: 12px;">
+                                <a href="' . url($image) . '" target="_blank">
+                                    <img src="' . url($image) . '" alt="" width="100%">
+                                </a>
+                            </td>
+                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                    vertical-align: top;font-size: 12px;">
+                                ' . date('d M Y', strtotime($row->date)) . '
+                            </td>
+                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                    vertical-align: top;font-size: 12px;">
+                                ' . $kategori->name . '
+                            </td>
+                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                    vertical-align: top;font-size: 12px;">
+                                ' . $row->description . '
+                            </td>
+                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                    vertical-align: top;font-size: 12px;">
+                                Rp' . number_format($row->nominal, 0, ',', '.') . '
+                            </td>
+                        </tr>';
                     }
                     DB::table('pengajuan_detail')->insert($save);
 
@@ -133,7 +170,9 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                      * SEND NOTIFIKASI TO BACKEND
                      */
                     $url = 'detail-pengajuan?parent_table=pengajuan&parent_columns=id_users,name,total_nominal,description&parent_columns_alias=Pegawai,Nama%20Pengajuan,Total,Dekripsi&parent_id=' . $id_pengajuan . '&return_url=' . CRUDBooster::adminPath('pengajuan') . '&foreign_key=id_pengajuan&label=';
-                    $cms_users = DB::table('cms_users')->get();
+                    $cms_users = DB::table('cms_users')
+                        ->join('cms_privileges', 'cms_privileges.id', '=', 'cms_users.id_cms_privileges')
+                        ->get();
                     $save_notif = [];
                     foreach ($cms_users as $row) {
                         $push_notif['id_cms_users'] = $row->id;
@@ -146,6 +185,56 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                         $save_notif[] = $push_notif;
                     }
                     DB::table('cms_notifications')->insert($save_notif);
+
+                    /**
+                     * SEND NOTIFICATION TO APPS
+                     */
+                    $save_usr_notif['created_at'] = date('Y-m-d');
+                    $save_usr_notif['id_pengajuan'] = $id_pengajuan;
+                    $save_usr_notif['title'] = 'REIMBURSEMENT DIPROSES';
+                    $save_usr_notif['content'] = 'Pengajuan “' . Request::input('name') . '” berhasil dikirim dan sedang diproses';
+                    $save_usr_notif['date'] = date('Y-m-d');
+                    $save_usr_notif['type'] = 'Diproses';
+                    DB::table('users_notification')->insert($save_usr_notif);
+
+                    $regid = DB::table('users_regid')
+                        ->where('id_users', $users->id)
+                        ->pluck('regid')
+                        ->toArray();
+                    $data_notif['title'] = $save_usr_notif['title'];
+                    $data_notif['content'] = $save_usr_notif['content'];
+                    $data_notif['id_pengajuan'] = $id_pengajuan;
+                    CRUDBooster::sendFCM($regid, $data_notif);
+
+                    /**
+                     * SEND EMAIL
+                     */
+                    $email = DB::table('email')
+                        ->whereNull('deleted_at')
+                        ->where('type', 'reimbursement_mail')
+                        ->first();
+                    $cc = DB::table('email')
+                        ->whereNull('deleted_at')
+                        ->where('type', 'reimbursement_cc')
+                        ->pluck('value')
+                        ->toArray();
+                    $data = []; //1 Mar 2019, 12:00
+                    $data['users_image'] = ($users->image == '' ? '' : url($users->image));
+                    $data['users_name'] = $users->name;
+                    $data['users_phone'] = $users->phone;
+                    $data['created_at'] = date('d M Y, H:i');
+                    $data['name'] = Request::input('name');
+                    $data['description'] = Request::input('description');
+                    $data['table'] = $table;
+                    $data['total'] = 'Rp' . number_format($total_nominal, 0, ',', '.');
+                    $data['detail_pengajuan'] = CRUDBooster::adminPath($url);
+
+                    $config['to'] = $email->value;
+                    $config['cc'] = $cc;
+                    $config['data'] = $data;
+                    $config['subject'] = 'Pengajuan Reimbursement - ' . $users->name;
+                    $config['template'] = '/email/pengajuan';
+                    self::sendEmail($config);
 
                     $result['api_status'] = 1;
                     $result['api_code'] = 200;
@@ -183,43 +272,30 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
         $to = $config['to'];
         $data = $config['data'];
         $template = $config['template'];
+        $cc = $config['cc'];
+        $subject = $config['subject'];
 
-        $template = file_get_contents(base_path('resources/views/email/pengajuan.blade.php'));
-        return $template;
+        $template = file_get_contents(base_path('resources/views' . $template . '.blade.php'));
+        $html = str_replace('[logo]', url('assets/image/img_reimbspro_logo.png'), $template);
+        $html = str_replace('[line]', url('assets/image/line.png'), $html);
+        $html = str_replace('[admin_path]', CRUDBooster::adminPath(), $html);
         foreach ($data as $key => $val) {
             $html = str_replace('[' . $key . ']', $val, $html);
-            $template->subject = str_replace('[' . $key . ']', $val, $template->subject);
         }
-        $subject = $template->subject;
         $attachments = ($config['attachments']) ?: [];
 
-        if ($config['send_at'] != null) {
-            $a = [];
-            $a['send_at'] = $config['send_at'];
-            $a['email_recipient'] = $to;
-            $a['email_from_email'] = $template->from_email ?: CRUDBooster::getSetting('email_sender');
-            $a['email_from_name'] = $template->from_name ?: CRUDBooster::getSetting('appname');
-            $a['email_cc_email'] = $template->cc_email;
-            $a['email_subject'] = $subject;
-            $a['email_content'] = $html;
-            $a['email_attachments'] = serialize($attachments);
-            $a['is_sent'] = 0;
-            DB::table('cms_email_queues')->insert($a);
-
-            return true;
-        }
-
-        \Mail::send("crudbooster::emails.blank", ['content' => $html], function ($message) use ($to, $subject, $template, $attachments) {
+        Mail::send("email/email_template", ['content' => $html], function ($message) use (
+            $to, $subject, $template,
+            $attachments, $cc
+        ) {
             $message->priority(1);
             $message->to($to);
 
-            if ($template->from_email) {
-                $from_name = ($template->from_name) ?: CRUDBooster::getSetting('appname');
-                $message->from($template->from_email, $from_name);
-            }
+            $from_name = 'RembsPro';
+            $message->from('no-reply@rembspro.com', $from_name);
 
-            if ($template->cc_email) {
-                $message->cc($template->cc_email);
+            if ($cc) {
+                $message->cc($cc);
             }
 
             if (count($attachments)) {
@@ -230,6 +306,8 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 
             $message->subject($subject);
         });
+
+        return $html;
     }
 
 }

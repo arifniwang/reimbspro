@@ -23,32 +23,31 @@ class ApiHomeController extends \crocodicstudio\crudbooster\controllers\ApiContr
         CRUDBooster::Validator($validator);
 
         $id = Request::input('id');
-        $month = strtotime(date('Y-m-d').' - 1 Year');
+        $month = strtotime(date('Y-m-d') . ' - 1 Year');
         $end = strtotime(date('Y-m-d'));
         $date = [];
-        $date[] = date('Y-m-d',$end);
-        while($end > $month)
-        {
+        $date[] = date('Y-m-d', $end);
+        while ($end > $month) {
             $end = strtotime("-1 month", $end);
-            $date[] = date('Y-m-d',$end);
+            $date[] = date('Y-m-d', $end);
         }
 
         /**
          * Total Pengeluaran & Sisa Kas
          */
         $anggaran = DB::table('anggaran')
-            ->where('year',date('Y'))
-            ->where('month',number_format(date('m'),0,'',''))
+            ->where('year', date('Y'))
+            ->where('month', number_format(date('m'), 0, '', ''))
             ->whereNull('deleted_at')
             ->first();
         $sisa_kas = $anggaran->nominal - $anggaran->reimbursement;
 
         $pengajuan = DB::table('pengajuan')
             ->whereNull('deleted_at')
-            ->where('status','Disetujui')
-            ->where('id_users',$id)
-            ->where('year',date('Y'))
-            ->where('month',number_format(date('m'),0,'',''))
+            ->where('status', 'Disetujui')
+            ->where('id_users', $id)
+            ->where('year', date('Y'))
+            ->where('month', number_format(date('m'), 0, '', ''))
             ->sum('total_nominal');
 
         /**
@@ -57,20 +56,20 @@ class ApiHomeController extends \crocodicstudio\crudbooster\controllers\ApiContr
          */
         $claim_bulanan = [];
         $no = 1;
-        foreach ($date as $key => $value){
-            $tahun = date('Y',strtotime($value));
-            $bulan = number_format(date('m',strtotime($value)),0,'','');
+        foreach ($date as $key => $value) {
+            $tahun = date('Y', strtotime($value));
+            $bulan = number_format(date('m', strtotime($value)), 0, '', '');
 
             $pengajuan_bulanan = DB::table('pengajuan')
                 ->whereNull('deleted_at')
-                ->where('status','Diterima')
-                ->where('id_users',$id)
-                ->where('year',$tahun)
-                ->where('month',$bulan)
+                ->where('status', 'Diterima')
+                ->where('id_users', $id)
+                ->where('year', $tahun)
+                ->where('month', $bulan)
                 ->sum('total_nominal');
 
             $rest_bulanan['id'] = $no++;
-            $rest_bulanan['date_start'] = date('Y-m-',strtotime($value)).'01';
+            $rest_bulanan['date_start'] = date('Y-m-', strtotime($value)) . '01';
             $rest_bulanan['date_end'] = date("Y-m-t", strtotime($value));;
             $rest_bulanan['nominal'] = $pengajuan_bulanan;
 
@@ -82,21 +81,21 @@ class ApiHomeController extends \crocodicstudio\crudbooster\controllers\ApiContr
          * diambil 50 Data Terakhir
          */
         $pengajuan_terakhir = DB::table('pengajuan')
-            ->select('id','total_nominal as nominal','name','description','status','created_at')
+            ->select('id', 'total_nominal as nominal', 'name', 'description', 'status', 'created_at')
             ->whereNull('deleted_at')
-            ->where('id_users',$id)
-            ->orderBy('id','DESC')
+            ->where('id_users', $id)
+            ->orderBy('id', 'DESC')
             ->limit(20)
             ->get();
-        foreach ($pengajuan_terakhir as $row){
+        foreach ($pengajuan_terakhir as $row) {
             $nota = DB::table('pengajuan_detail')
-                ->select('pengajuan_detail.id','pengajuan_detail.image','pengajuan_detail.date','pengajuan_detail.nominal',
-                    'pengajuan_detail.description','pengajuan_detail.id_kategori','kategori.name as kategori')
-                ->join('kategori','kategori.id','=','pengajuan_detail.id_kategori')
+                ->select('pengajuan_detail.id', 'pengajuan_detail.image', 'pengajuan_detail.date', 'pengajuan_detail.nominal',
+                    'pengajuan_detail.description', 'pengajuan_detail.id_kategori', 'kategori.name as kategori')
+                ->join('kategori', 'kategori.id', '=', 'pengajuan_detail.id_kategori')
                 ->whereNull('pengajuan_detail.deleted_at')
-                ->where('pengajuan_detail.id_pengajuan',$row->id)
+                ->where('pengajuan_detail.id_pengajuan', $row->id)
                 ->get();
-            foreach ($nota as $xrow){
+            foreach ($nota as $xrow) {
                 $xrow->image = ($xrow->image != '' ? url($xrow->image) : '');
             }
 

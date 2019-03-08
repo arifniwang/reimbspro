@@ -29,13 +29,13 @@ class ApiEditPasswordController extends \crocodicstudio\crudbooster\controllers\
         $new_password = Request::input('new_password');
 
         $users = DB::table('users')
-            ->where('id',$id)
+            ->where('id', $id)
             ->first();
-        if (empty($users)){
+        if (empty($users)) {
             $result['api_status'] = 0;
             $result['api_code'] = 401;
             $result['api_message'] = 'Akun anda tidak ditemukan';
-        }elseif ($users->deleted_at != ''){
+        } elseif ($users->deleted_at != '') {
             $result['api_status'] = 0;
             $result['api_code'] = 440;
             $result['api_message'] = 'Akun anda tidak dapat digunakan, silahkan login ulang';
@@ -43,10 +43,10 @@ class ApiEditPasswordController extends \crocodicstudio\crudbooster\controllers\
             $result['api_status'] = 0;
             $result['api_code'] = 401;
             $result['api_message'] = 'Password lama tidak sesuai';
-        }else{
+        } else {
             $save['password'] = Hash::make($new_password);
             $save['updated_at'] = date('Y-m-d H:i:s');
-            DB::table('users')->where('id',$id)->update($save);
+            DB::table('users')->where('id', $id)->update($save);
 
             $result['api_status'] = 1;
             $result['api_code'] = 200;
