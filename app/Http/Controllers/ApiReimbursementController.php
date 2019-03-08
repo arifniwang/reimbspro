@@ -32,6 +32,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
         $nota = file_get_contents($nota);
         $valid_json = CRUDBooster::isJSON($nota);
         $now = date('Y-m-d H:i:s');
+        $created_at = (Request::input('created_at') == '' ? '' : date('Y-m-d H:i:s',strtotime(Request::input('created_at'))));
 
         $users = DB::table('users')
             ->where('id', Request::input('id'))
@@ -83,7 +84,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     $json_message .= 'Kategori nota tidak boleh kosong';
                     break;
                 } else {
-                    $rest['created_at'] = $now;
+                    $rest['created_at'] = ($created_at != '' ? $created_at : $now);
                     $rest['image'] = $row->image;
                     $rest['date'] = date('Y-m-d', strtotime($row->date));
                     $rest['nominal'] = number_format($row->nominal, 0, '', '');
@@ -104,7 +105,8 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                 /**
                  * SAVE PENGAJUAN
                  */
-                $save_pengajuan['created_at'] = $now;
+                $save_pengajuan['created_at'] = ($created_at != '' ? $created_at : $now);
+                $save_pengajuan['strtotime'] = strtotime($save_pengajuan['created_at']);
                 $save_pengajuan['id_users'] = Request::input('id');
                 $save_pengajuan['name'] = Request::input('name');
                 $save_pengajuan['description'] = Request::input('description');
