@@ -48,6 +48,7 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
                 ->where('pengajuan_detail.id_pengajuan', $row->id)
                 ->get();
             foreach ($nota as $xrow) {
+                $xrow->id_reimbusement = $row->id;
                 $xrow->image = ($xrow->image != '' ? url($xrow->image) : '');
             }
             $row->nota = $nota;
