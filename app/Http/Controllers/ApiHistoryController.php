@@ -20,6 +20,17 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
     {
         //This method will be execute before run the main process
 
+        $anggaran = DB::table('anggaran')
+            ->where('date',date('Y-m-d'))
+            ->whereNull('deleted_at')
+            ->first();
+        $sisa_kas = $anggaran-$nominal - $anggaran->reimbursement;
+
+        $result['api_status'] = 1;
+        $result['api_code'] = 200;
+        $result['api_message'] = 'Success';
+        $result['sisa_kas'] = $sisa_kas;
+        $result['pengeluaran_anda'] = 0;
         $res = response()->json($result);
         $res->send();
         exit;
