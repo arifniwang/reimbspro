@@ -51,6 +51,8 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             $data_notif['content'] = $save_usr_notif['content'];
             $data_notif['id_pengajuan'] = $id;
             CRUDBooster::sendFCM($regid, $data_notif);
+
+            CRUDBooster::redirectBack('Pengajuan berhasil diterima','success');
         }
     }
 
@@ -98,6 +100,8 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             $data_notif['content'] = $save_usr_notif['content'];
             $data_notif['id_pengajuan'] = $id;
             CRUDBooster::sendFCM($regid, $data_notif);
+
+            CRUDBooster::redirectBack('Pengajuan berhasil ditolak','success');
         }
     }
 
