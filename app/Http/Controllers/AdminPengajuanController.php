@@ -192,7 +192,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         */
         $this->addaction = array();
         $this->addaction[] = ['label' => 'Approve', 'url' => CRUDBooster::mainpath('approve/[id]'), 'icon' => 'fa fa-check',
-            'color' => 'info', 'showIf' => "[status] == 'Diproses'", 'confirmation' => true];
+            'color' => 'success', 'showIf' => "[status] == 'Diproses'", 'confirmation' => true];
         $this->addaction[] = ['label' => 'Reject', 'url' => CRUDBooster::mainpath('reject/[id]'), 'icon' => 'fa fa-ban',
             'color' => 'danger', 'showIf' => "[status] == 'Diproses'", 'confirmation' => true];
 
@@ -265,8 +265,9 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $js = '';
         if (Request::segment(3) == '') {
             $js .= '
+                $("#table_dashboard").find("thead tr th:nth-child(8)").attr("width","225px");
                 $("#table_dashboard").find("thead tr th:nth-child(7)").attr("width","150px");
-                $("#table_dashboard").find("thead tr th:nth-child(4)").attr("width","400px");
+                $("#table_dashboard").find("thead tr th:nth-child(4)").attr("width","300px");
             ';
         }
         $this->script_js = '' . $js;
@@ -316,7 +317,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $this->style_css = '
             .badge {
                 padding: 1px 9px 2px;
-                font-size: 12.025px;
+                font-size: 10px;
                 font-weight: bold;
                 white-space: nowrap;
                 color: #ffffff;
@@ -324,41 +325,21 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
                 -webkit-border-radius: 9px;
                 -moz-border-radius: 9px;
                 border-radius: 9px;
+                padding-top:5px;
+                padding-bottom:5px;
             }
-            .badge:hover {
-                color: #ffffff;
-                text-decoration: none;
-                cursor: pointer;
-            }
-            .badge-error {
-                background-color: #b94a48;
-            }
-            .badge-error:hover {
-                background-color: #953b39;
+            .badge-danger {
+                background-color: #E75651;
             }
             .badge-warning {
-                background-color: #f89406;
-            }
-            .badge-warning:hover {
-                background-color: #c67605;
+                background-color: #FFD31F;
+                color: #04233C;
             }
             .badge-success {
-                background-color: #468847;
-            }
-            .badge-success:hover {
-                background-color: #356635;
+                background-color: #2DC399;
             }
             .badge-info {
-                background-color: #3a87ad;
-            }
-            .badge-info:hover {
-                background-color: #2d6987;
-            }
-            .badge-inverse {
-                background-color: #333333;
-            }
-            .badge-inverse:hover {
-                background-color: #1a1a1a;
+                background-color: #197EA7;
             }
         ';
 

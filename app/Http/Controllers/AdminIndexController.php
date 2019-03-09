@@ -11,9 +11,4 @@ class AdminIndexController extends \crocodicstudio\crudbooster\controllers\CBCon
     {
         return view('index');
     }
-
-    public function getSample()
-    {
-        return view('email.pengajuan');
-    }
 }

@@ -3,7 +3,7 @@
 use Session;
 use Request;
 use DB;
-use CRUDBooster;
+use crocodicstudio\crudbooster\helpers\CRUDBooster;
 
 class AdminEmailController extends \crocodicstudio\crudbooster\controllers\CBController
 {
@@ -20,11 +20,11 @@ class AdminEmailController extends \crocodicstudio\crudbooster\controllers\CBCon
         $this->button_table_action = TRUE;
         $this->button_action_style = "button_icon";
         $this->button_add = TRUE;
-        $this->button_delete = TRUE;
-        $this->button_edit = TRUE;
-        $this->button_detail = TRUE;
+        $this->button_delete = (Request::segment(3) == '' ? FALSE : TRUE);;
+        $this->button_edit = (Request::segment(3) == '' ? FALSE : TRUE);
+        $this->button_detail = FALSE;
         $this->button_show = TRUE;
-        $this->button_filter = TRUE;
+        $this->button_filter = FALSE;
         $this->button_export = FALSE;
         $this->button_import = FALSE;
         $this->button_bulk_action = TRUE;
@@ -33,15 +33,15 @@ class AdminEmailController extends \crocodicstudio\crudbooster\controllers\CBCon
 
         # START COLUMNS DO NOT REMOVE THIS LINE
         $this->col = [];
-        $this->col[] = ["label" => "Type", "name" => "type"];
+//        $this->col[] = ["label" => "Type", "name" => "type"];
         $this->col[] = ["label" => "Name", "name" => "name"];
         $this->col[] = ["label" => "Value", "name" => "value"];
         # END COLUMNS DO NOT REMOVE THIS LINE
 
         # START FORM DO NOT REMOVE THIS LINE
         $this->form = [];
-        $this->form[] = ["label" => "Type", "name" => "type", "type" => "text", "required" => TRUE, "validation" => "required|min:1|max:255"];
-        $this->form[] = ["label" => "Name", "name" => "name", "type" => "text", "required" => TRUE, "validation" => "required|string|min:3|max:70", "placeholder" => "You can only enter the letter only"];
+//        $this->form[] = ["label" => "Type", "name" => "type", "type" => "text", "required" => TRUE, "validation" => "required|min:1|max:255"];
+//        $this->form[] = ["label" => "Name", "name" => "name", "type" => "text", "required" => TRUE, "validation" => "required|string|min:3|max:70", "placeholder" => "You can only enter the letter only"];
         $this->form[] = ["label" => "Value", "name" => "value", "type" => "text", "required" => TRUE, "validation" => "required|min:1|max:255"];
 
         # END FORM DO NOT REMOVE THIS LINE
@@ -73,6 +73,10 @@ class AdminEmailController extends \crocodicstudio\crudbooster\controllers\CBCon
         |
         */
         $this->addaction = array();
+        $this->addaction[] = ['label' => '', 'url' => CRUDBooster::mainpath('edit/[id]'), 'icon' => 'fa fa-pencil',
+            'color' => 'success'];
+        $this->addaction[] = ['label' => '', 'url' => CRUDBooster::mainpath('delete/[id]'), 'icon' => 'fa fa-trash',
+            'color' => 'warning', 'showIf' => "[type] != 'reimbursement_mail'"];
 
 
         /*
@@ -226,7 +230,7 @@ class AdminEmailController extends \crocodicstudio\crudbooster\controllers\CBCon
     public function hook_query_index(&$query)
     {
         //Your code here
-
+        $query->addSelect('type');
     }
 
     /*
@@ -250,7 +254,8 @@ class AdminEmailController extends \crocodicstudio\crudbooster\controllers\CBCon
     public function hook_before_add(&$postdata)
     {
         //Your code here
-
+        $postdata['type'] = 'reimbursement_cc';
+        $postdata['name'] = 'Email CC';
     }
 
     /*
@@ -303,7 +308,10 @@ class AdminEmailController extends \crocodicstudio\crudbooster\controllers\CBCon
     public function hook_before_delete($id)
     {
         //Your code here
-
+        $email = DB::table('email')
+            ->where('id',$id)
+            ->first();
+        if ($email->type == 'reimbursement_mail') CRUDBooster::redirectBack('Email Pengajuan tidak bisa dihapus');
     }
 
     /*
