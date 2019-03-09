@@ -79,7 +79,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     $valid_json = false;
                     $json_message .= 'Nominal nota tidak boleh kosong';
                     break;
-                } elseif ($row->kategori == '') {
+                } elseif ($row->id_kategori == '') {
                     $valid_json = false;
                     $json_message .= 'Kategori nota tidak boleh kosong';
                     break;
@@ -88,7 +88,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     $rest['image'] = $row->image;
                     $rest['date'] = date('Y-m-d', strtotime($row->date));
                     $rest['nominal'] = number_format($row->nominal, 0, '', '');
-                    $rest['id_kategori'] = $row->kategori;
+                    $rest['id_kategori'] = $row->id_kategori;
                     $rest['description'] = $row->description;
                     $total_nominal += (int)number_format($row->nominal, 0, '', '');
 
@@ -129,7 +129,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                         $save[$key]['image'] = $image;
 
                         $kategori = DB::table('kategori')
-                            ->where('id', $row->kategori)
+                            ->where('id', $row->id_kategori)
                             ->first();
 
                         /**

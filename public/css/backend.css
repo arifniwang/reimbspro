@@ -1,0 +1,41 @@
+/**
+ * YELLOW : #FFD617
+ * DARK : #04233C
+ */
+
+header > a{
+    background-color: #04233C !important;
+}
+header > nav{
+    background-color: #FFD617 !important;
+}
+header > nav .sidebar-toggle, header > nav .notifications-menu > a, header > nav .user-menu > a > span{
+    color: #04233C !important;
+}
+
+header > nav li.user-header{
+    background-color: #04233C !important;
+}
+
+header > nav li.user-header > p , header > nav li.user-header > p > small, header > nav li.user-header > p > small > em{
+    background-color: #04233C !important;
+    color: #FFFFFF !important;
+}
+
+header > nav .user-footer .btn-danger{
+    background-color: #E75651;
+    border-color: #E75651;
+    color: #FFFFFF !important;
+}
+
+body .btn.btn-danger{
+    background-color: #E75651;
+    border-color: #E75651;
+    color: #FFFFFF !important;
+}
+
+body .btn.btn-default{
+    background-color: #E75651;
+    border-color: #E75651;
+    color: #FFFFFF !important;
+}
