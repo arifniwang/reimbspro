@@ -19,7 +19,7 @@ class AdminDetailPengajuanController extends \crocodicstudio\crudbooster\control
         $this->global_privilege = FALSE;
         $this->button_table_action = FALSE;
         $this->button_action_style = "button_icon";
-        $this->button_add = TRUE;
+        $this->button_add = FALSE;
         $this->button_delete = FALSE;
         $this->button_edit = FALSE;
         $this->button_detail = FALSE;
