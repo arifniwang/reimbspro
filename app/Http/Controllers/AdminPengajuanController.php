@@ -30,7 +30,24 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             $save['year'] = date('Y');
             $save['month'] = number_format(date('m'), 0, '', '');
             $save['status'] = 'Disetujui';
-            DB::table('pengajuan')->where('id',$id)->update($save);
+            DB::table('pengajuan')->where('id', $id)->update($save);
+
+            /**
+             * UPDATE ANGGARAN
+             */
+            $total_pengajuan = DB::table('pengajuan')
+                ->whereNull('deleted_at')
+                ->where('year', date('Y'))
+                ->where('month', number_format(date('m'), 0, '', ''))
+                ->where('status', 'Disetujui')
+                ->sum('total_nominal');
+            $save_anggaran['reimbursement'] = $total_pengajuan;
+            $save_anggaran['updated_at'] = date('Y-m-d H:i:s');
+            DB::table('anggaran')
+                ->where('year', date('Y'))
+                ->where('month', number_format(date('m'), 0, '', ''))
+                ->whereNull('deleted_at')
+                ->update($save_anggaran);
 
             /**
              * SEND NOTIFICATION TO APPS
@@ -52,7 +69,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             $data_notif['id_pengajuan'] = $id;
             CRUDBooster::sendFCM($regid, $data_notif);
 
-            CRUDBooster::redirectBack('Pengajuan berhasil diterima','success');
+            CRUDBooster::redirectBack('Pengajuan berhasil diterima', 'success');
         }
     }
 
@@ -79,7 +96,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             $save['year'] = date('Y');
             $save['month'] = number_format(date('m'), 0, '', '');
             $save['status'] = 'Ditolak';
-            DB::table('pengajuan')->where('id',$id)->update($save);
+            DB::table('pengajuan')->where('id', $id)->update($save);
 
             /**
              * SEND NOTIFICATION TO APPS
@@ -101,7 +118,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             $data_notif['id_pengajuan'] = $id;
             CRUDBooster::sendFCM($regid, $data_notif);
 
-            CRUDBooster::redirectBack('Pengajuan berhasil ditolak','success');
+            CRUDBooster::redirectBack('Pengajuan berhasil ditolak', 'success');
         }
     }
 
