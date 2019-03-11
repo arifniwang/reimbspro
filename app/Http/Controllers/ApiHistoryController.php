@@ -60,14 +60,20 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
 
             $date = date('Y-m-d', strtotime($row->created_at));
             if (!in_array($date,$list_date)){
-                array_push($list_date,$date);
-                $list = [];
-                $list[] = $row;
                 if ($i != 0){
-                    $rest['date'] = $date;
+                    $rest['date'] = $exist_date;
                     $rest['list'] = $list;
                     $item[] = $rest;
+
+                    $list = [];
+                    $list[] = $row;
+                }else{
+                    $list = [];
+                    $list[] = $row;
                 }
+
+                array_push($list_date,$date);
+                $exist_date = $date;
             }else{
                 $list[] = $row;
             }
