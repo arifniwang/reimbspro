@@ -80,7 +80,7 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
 
             $i++;
         }
-        if(!empty($pengajuan)){
+        if($i > 0){
             $rest['date'] = $date;
             $rest['list'] = $list;
             $item[] = $rest;
