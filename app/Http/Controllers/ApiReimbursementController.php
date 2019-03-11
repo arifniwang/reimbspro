@@ -25,229 +25,256 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
         $validator['id'] = 'required'; //id users
         $validator['type'] = 'required|in:draft,submit';
         if(Request::input('type') == 'submit'){
+            $validator['name'] = 'required';
+            $validator['nota'] = 'required|file';
+            CRUDBooster::Validator($validator);
 
-        }
-        $validator['name'] = 'required';
-        $validator['description'] = 'required';
-        $validator['nota'] = 'required|file';
-        CRUDBooster::Validator($validator);
+            $nota = Request::file('nota');
+            $extension = $nota->getClientOriginalExtension();
+            $nota = file_get_contents($nota);
+            $valid_json = CRUDBooster::isJSON($nota);
+            $now = date('Y-m-d H:i:s');
+            $created_at = (Request::input('created_at') == '' ? $now :
+                date('Y-m-d H:i:s', strtotime(Request::input('created_at'))));
 
-        $nota = Request::file('nota');
-        $extension = $nota->getClientOriginalExtension();
-        $nota = file_get_contents($nota);
-        $valid_json = CRUDBooster::isJSON($nota);
-        $now = date('Y-m-d H:i:s');
-        $created_at = (Request::input('created_at') == '' ? '' : date('Y-m-d H:i:s', strtotime(Request::input('created_at'))));
-
-        $users = DB::table('users')
-            ->where('id', Request::input('id'))
-            ->first();
-        if (empty($users)) {
-            $result['api_status'] = 0;
-            $result['api_code'] = 401;
-            $result['api_message'] = 'Akun anda tidak ditemukan';
-        } elseif ($users->deleted_at != '') {
-            $result['api_status'] = 0;
-            $result['api_code'] = 440;
-            $result['api_message'] = 'Akun anda tidak dapat digunakan, silahkan login ulang';
-        } elseif ($extension != 'json') {
-            $result['api_status'] = 0;
-            $result['api_code'] = 401;
-            $result['api_message'] = 'Nota harus berupa json';
-        } elseif ($nota == '' || !$valid_json) {
-            $result['api_status'] = 0;
-            $result['api_code'] = 401;
-            $result['api_message'] = 'Json tidak valid';
-        } elseif (!is_array(json_decode($nota))) {
-            $result['api_status'] = 0;
-            $result['api_code'] = 401;
-            $result['api_message'] = 'Json harus berupa array';
-        } else {
-            $json_message = '';
-            $json = json_decode($nota);
-            $total_nominal = 0;
-            $save = [];
-
-            /**
-             * VALIDATE JSON FILE
-             */
-            foreach ($json as $row) {
-                if ($row->image == '') {
-                    $valid_json = false;
-                    $json_message .= 'Image nota tidak boleh kosong';
-                    break;
-                } elseif ($row->date == '') {
-                    $valid_json = false;
-                    $json_message .= 'Tanggal nota tidak boleh kosong';
-                    break;
-                } elseif ($row->nominal == '') {
-                    $valid_json = false;
-                    $json_message .= 'Nominal nota tidak boleh kosong';
-                    break;
-                } elseif ($row->id_kategori == '') {
-                    $valid_json = false;
-                    $json_message .= 'Kategori nota tidak boleh kosong';
-                    break;
-                } else {
-                    $rest['created_at'] = ($created_at != '' ? $created_at : $now);
-                    $rest['image'] = $row->image;
-                    $rest['date'] = date('Y-m-d', strtotime($row->date));
-                    $rest['nominal'] = number_format($row->nominal, 0, '', '');
-                    $rest['id_kategori'] = $row->id_kategori;
-                    $rest['description'] = $row->description;
-                    $total_nominal += (int)number_format($row->nominal, 0, '', '');
-
-                    $save[] = $rest;
-                }
-            }
-
-            if (!$valid_json) {
+            $users = DB::table('users')
+                ->where('id', Request::input('id'))
+                ->first();
+            if (empty($users)) {
                 $result['api_status'] = 0;
                 $result['api_code'] = 401;
-                $result['api_message'] = $json_message;
+                $result['api_message'] = 'Akun anda tidak ditemukan';
+            } elseif ($users->deleted_at != '') {
+                $result['api_status'] = 0;
+                $result['api_code'] = 440;
+                $result['api_message'] = 'Akun anda tidak dapat digunakan, silahkan login ulang';
+            } elseif ($extension != 'json') {
+                $result['api_status'] = 0;
+                $result['api_code'] = 401;
+                $result['api_message'] = 'Nota harus berupa json';
+            } elseif ($nota == '' || !$valid_json) {
+                $result['api_status'] = 0;
+                $result['api_code'] = 401;
+                $result['api_message'] = 'Json tidak valid';
+            } elseif (!is_array(json_decode($nota))) {
+                $result['api_status'] = 0;
+                $result['api_code'] = 401;
+                $result['api_message'] = 'Json harus berupa array';
             } else {
-                /**
-                 * SAVE PENGAJUAN
-                 */
-                $save_pengajuan['created_at'] = ($created_at != '' ? $created_at : $now);
-                $save_pengajuan['strtotime'] = strtotime($save_pengajuan['created_at']);
-                $save_pengajuan['id_users'] = Request::input('id');
-                $save_pengajuan['name'] = Request::input('name');
-                $save_pengajuan['description'] = Request::input('description');
-                $save_pengajuan['status'] = 'Diproses';
-                $save_pengajuan['total_nominal'] = $total_nominal;
-                $id_pengajuan = DB::table('pengajuan')->insertGetId($save_pengajuan);
+                $json_message = '';
+                $json = json_decode($nota);
+                $total_nominal = 0;
+                $save = [];
 
-                if (!$id_pengajuan) {
+                /**
+                 * VALIDATE JSON FILE
+                 */
+                $total_row = 0;
+                foreach ($json as $row) {
+                    if ($row->type == 'new'){
+                        if ($row->image == '') {
+                            $valid_json = false;
+                            $json_message .= 'Image nota tidak boleh kosong';
+                            break;
+                        } elseif ($row->date == '') {
+                            $valid_json = false;
+                            $json_message .= 'Tanggal nota tidak boleh kosong';
+                            break;
+                        } elseif ($row->nominal == '') {
+                            $valid_json = false;
+                            $json_message .= 'Nominal nota tidak boleh kosong';
+                            break;
+                        } elseif ($row->id_kategori == '') {
+                            $valid_json = false;
+                            $json_message .= 'Kategori nota tidak boleh kosong';
+                            break;
+                        } else {
+                            $rest['created_at'] = $created_at;
+                            $rest['image'] = $row->image;
+                            $rest['date'] = date('Y-m-d', strtotime($row->date));
+                            $rest['nominal'] = number_format($row->nominal, 0, '', '');
+                            $rest['id_kategori'] = $row->id_kategori;
+                            $rest['description'] = $row->description;
+                            $total_nominal += (int)number_format($row->nominal, 0, '', '');
+
+                            $save[] = $rest;
+                            $total_row++;
+                        }
+                    }elseif ($row->type == 'update' || $row->type == 'existing'){
+                        if ($row->image == '') {
+                            $valid_json = false;
+                            $json_message .= 'Image nota tidak boleh kosong';
+                            break;
+                        } elseif ($row->date == '') {
+                            $valid_json = false;
+                            $json_message .= 'Tanggal nota tidak boleh kosong';
+                            break;
+                        } elseif ($row->nominal == '') {
+                            $valid_json = false;
+                            $json_message .= 'Nominal nota tidak boleh kosong';
+                            break;
+                        } elseif ($row->id_kategori == '') {
+                            $valid_json = false;
+                            $json_message .= 'Kategori nota tidak boleh kosong';
+                            break;
+                        } else {
+                            $total_row++;
+                        }
+                    }
+                }
+
+                if (!$valid_json) {
                     $result['api_status'] = 0;
                     $result['api_code'] = 401;
-                    $result['api_message'] = 'Pengajuan gagal, silahkan di coba kembali';
+                    $result['api_message'] = $json_message;
                 } else {
                     /**
-                     * SAVE DETAIL PENGAJUAN
+                     * SAVE PENGAJUAN
                      */
-                    $table = '';
-                    $no = 1;
-                    foreach ($save as $key => $value) {
-                        $image = CRUDBooster::uploadBase64($value['image']);
-                        $save[$key]['id_pengajuan'] = $id_pengajuan;
-                        $save[$key]['image'] = $image;
+                    $save_pengajuan['created_at'] = $created_at;
+                    $save_pengajuan['strtotime'] = strtotime($save_pengajuan['created_at']);
+                    $save_pengajuan['id_users'] = Request::input('id');
+                    $save_pengajuan['name'] = Request::input('name');
+                    $save_pengajuan['description'] = Request::input('description');
+                    $save_pengajuan['status'] = 'Diproses';
+                    $save_pengajuan['total_nominal'] = $total_nominal;
+                    $id_pengajuan = DB::table('pengajuan')->insertGetId($save_pengajuan);
 
-                        $kategori = DB::table('kategori')
-                            ->where('id', $row->id_kategori)
-                            ->first();
+                    if (!$id_pengajuan) {
+                        $result['api_status'] = 0;
+                        $result['api_code'] = 401;
+                        $result['api_message'] = 'Pengajuan gagal, silahkan di coba kembali';
+                    } else {
+                        /**
+                         * SAVE DETAIL PENGAJUAN
+                         */
+                        $table = '';
+                        $no = 1;
+                        foreach ($save as $key => $value) {
+                            $image = CRUDBooster::uploadBase64($value['image']);
+                            $save[$key]['id_pengajuan'] = $id_pengajuan;
+                            $save[$key]['image'] = $image;
+
+                            $kategori = DB::table('kategori')
+                                ->where('id', $row->id_kategori)
+                                ->first();
+
+                            /**
+                             * MAKE TABLE EMAIL
+                             */
+                            $table .= '<tr>
+                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                        vertical-align: top;font-size: 12px;">
+                                    ' . $no++ . '
+                                </td>
+                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                        vertical-align: top;font-size: 12px;">
+                                    <a href="' . url($image) . '" target="_blank">
+                                        <img src="' . url($image) . '" alt="" width="100%">
+                                    </a>
+                                </td>
+                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                        vertical-align: top;font-size: 12px;">
+                                    ' . date('d M Y', strtotime($row->date)) . '
+                                </td>
+                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                        vertical-align: top;font-size: 12px;">
+                                    ' . $kategori->name . '
+                                </td>
+                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                        vertical-align: top;font-size: 12px;">
+                                    ' . $row->description . '
+                                </td>
+                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                        vertical-align: top;font-size: 12px;">
+                                    Rp' . number_format($row->nominal, 0, ',', '.') . '
+                                </td>
+                            </tr>';
+                        }
+                        DB::table('pengajuan_detail')->insert($save);
 
                         /**
-                         * MAKE TABLE EMAIL
+                         * SEND NOTIFIKASI TO BACKEND
                          */
-                        $table .= '<tr>
-                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                    vertical-align: top;font-size: 12px;">
-                                ' . $no++ . '
-                            </td>
-                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                    vertical-align: top;font-size: 12px;">
-                                <a href="' . url($image) . '" target="_blank">
-                                    <img src="' . url($image) . '" alt="" width="100%">
-                                </a>
-                            </td>
-                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                    vertical-align: top;font-size: 12px;">
-                                ' . date('d M Y', strtotime($row->date)) . '
-                            </td>
-                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                    vertical-align: top;font-size: 12px;">
-                                ' . $kategori->name . '
-                            </td>
-                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                    vertical-align: top;font-size: 12px;">
-                                ' . $row->description . '
-                            </td>
-                            <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                    vertical-align: top;font-size: 12px;">
-                                Rp' . number_format($row->nominal, 0, ',', '.') . '
-                            </td>
-                        </tr>';
+                        $url = 'detail-pengajuan?parent_table=pengajuan&parent_columns=id_users,name,total_nominal,description&parent_columns_alias=Pegawai,Nama%20Pengajuan,Total,Dekripsi&parent_id=' . $id_pengajuan . '&return_url=' . CRUDBooster::adminPath('pengajuan') . '&foreign_key=id_pengajuan&label=';
+                        $cms_users = DB::table('cms_users')
+                            ->join('cms_privileges', 'cms_privileges.id', '=', 'cms_users.id_cms_privileges')
+                            ->get();
+                        $save_notif = [];
+                        foreach ($cms_users as $row) {
+                            $push_notif['id_cms_users'] = $row->id;
+                            $push_notif['is_read'] = 0;
+                            $push_notif['created_at'] = $now;
+                            $push_notif['content'] = 'Pengajuan - ' . $users->name;
+                            $push_notif['url'] = CRUDBooster::adminPath($url);
+                            $push_notif['id_relation'] = $id_pengajuan;
+                            $push_notif['type'] = 1; //pengajuan
+                            $save_notif[] = $push_notif;
+                        }
+                        DB::table('cms_notifications')->insert($save_notif);
+
+                        /**
+                         * SEND NOTIFICATION TO APPS
+                         */
+                        $save_usr_notif['created_at'] = date('Y-m-d H:i:s');
+                        $save_usr_notif['id_pengajuan'] = $id_pengajuan;
+                        $save_usr_notif['title'] = 'REIMBURSEMENT DIPROSES';
+                        $save_usr_notif['content'] = 'Pengajuan “' . Request::input('name') . '” berhasil dikirim dan sedang diproses';
+                        $save_usr_notif['date'] = date('Y-m-d');
+                        $save_usr_notif['type'] = 'Diproses';
+                        $act_notif = DB::table('users_notification')->insert($save_usr_notif);
+
+                        $regid = DB::table('users_regid')
+                            ->where('id_users', $users->id)
+                            ->pluck('regid')
+                            ->toArray();
+                        $data_notif['title'] = $save_usr_notif['title'];
+                        $data_notif['content'] = $save_usr_notif['content'];
+                        $data_notif['id'] = $act_notif;
+                        $data_notif['id_pengajuan'] = $id_pengajuan;
+                        CRUDBooster::sendFCM($regid, $data_notif);
+
+                        /**
+                         * SEND EMAIL
+                         */
+                        $email = DB::table('email')
+                            ->whereNull('deleted_at')
+                            ->where('type', 'reimbursement_mail')
+                            ->first();
+                        $cc = DB::table('email')
+                            ->whereNull('deleted_at')
+                            ->where('type', 'reimbursement_cc')
+                            ->pluck('value')
+                            ->toArray();
+                        $data = [];
+                        $data['users_image'] = ($users->image == '' ? '' : url($users->image));
+                        $data['users_name'] = $users->name;
+                        $data['users_phone'] = $users->phone;
+                        $data['created_at'] = date('d M Y, H:i');
+                        $data['name'] = Request::input('name');
+                        $data['description'] = Request::input('description');
+                        $data['table'] = $table;
+                        $data['total'] = 'Rp' . number_format($total_nominal, 0, ',', '.');
+                        $data['detail_pengajuan'] = CRUDBooster::adminPath($url);
+
+                        $config['to'] = $email->value;
+                        $config['cc'] = $cc;
+                        $config['data'] = $data;
+                        $config['subject'] = 'Pengajuan Reimbursement - ' . $users->name;
+                        $config['template'] = '/email/pengajuan';
+                        self::sendEmail($config);
+
+                        $result['api_status'] = 1;
+                        $result['api_code'] = 200;
+                        $result['api_message'] = 'Pengajuan berhasil ditambah';
+                        $result['id_reimbursement'] = $id_pengajuan;
                     }
-                    DB::table('pengajuan_detail')->insert($save);
-
-                    /**
-                     * SEND NOTIFIKASI TO BACKEND
-                     */
-                    $url = 'detail-pengajuan?parent_table=pengajuan&parent_columns=id_users,name,total_nominal,description&parent_columns_alias=Pegawai,Nama%20Pengajuan,Total,Dekripsi&parent_id=' . $id_pengajuan . '&return_url=' . CRUDBooster::adminPath('pengajuan') . '&foreign_key=id_pengajuan&label=';
-                    $cms_users = DB::table('cms_users')
-                        ->join('cms_privileges', 'cms_privileges.id', '=', 'cms_users.id_cms_privileges')
-                        ->get();
-                    $save_notif = [];
-                    foreach ($cms_users as $row) {
-                        $push_notif['id_cms_users'] = $row->id;
-                        $push_notif['is_read'] = 0;
-                        $push_notif['created_at'] = $now;
-                        $push_notif['content'] = 'Pengajuan - ' . $users->name;
-                        $push_notif['url'] = CRUDBooster::adminPath($url);
-                        $push_notif['id_relation'] = $id_pengajuan;
-                        $push_notif['type'] = 1; //pengajuan
-                        $save_notif[] = $push_notif;
-                    }
-                    DB::table('cms_notifications')->insert($save_notif);
-
-                    /**
-                     * SEND NOTIFICATION TO APPS
-                     */
-                    $save_usr_notif['created_at'] = date('Y-m-d H:i:s');
-                    $save_usr_notif['id_pengajuan'] = $id_pengajuan;
-                    $save_usr_notif['title'] = 'REIMBURSEMENT DIPROSES';
-                    $save_usr_notif['content'] = 'Pengajuan “' . Request::input('name') . '” berhasil dikirim dan sedang diproses';
-                    $save_usr_notif['date'] = date('Y-m-d');
-                    $save_usr_notif['type'] = 'Diproses';
-                    $act_notif = DB::table('users_notification')->insert($save_usr_notif);
-
-                    $regid = DB::table('users_regid')
-                        ->where('id_users', $users->id)
-                        ->pluck('regid')
-                        ->toArray();
-                    $data_notif['title'] = $save_usr_notif['title'];
-                    $data_notif['content'] = $save_usr_notif['content'];
-                    $data_notif['id'] = $act_notif;
-                    $data_notif['id_pengajuan'] = $id_pengajuan;
-                    CRUDBooster::sendFCM($regid, $data_notif);
-
-                    /**
-                     * SEND EMAIL
-                     */
-                    $email = DB::table('email')
-                        ->whereNull('deleted_at')
-                        ->where('type', 'reimbursement_mail')
-                        ->first();
-                    $cc = DB::table('email')
-                        ->whereNull('deleted_at')
-                        ->where('type', 'reimbursement_cc')
-                        ->pluck('value')
-                        ->toArray();
-                    $data = []; //1 Mar 2019, 12:00
-                    $data['users_image'] = ($users->image == '' ? '' : url($users->image));
-                    $data['users_name'] = $users->name;
-                    $data['users_phone'] = $users->phone;
-                    $data['created_at'] = date('d M Y, H:i');
-                    $data['name'] = Request::input('name');
-                    $data['description'] = Request::input('description');
-                    $data['table'] = $table;
-                    $data['total'] = 'Rp' . number_format($total_nominal, 0, ',', '.');
-                    $data['detail_pengajuan'] = CRUDBooster::adminPath($url);
-
-                    $config['to'] = $email->value;
-                    $config['cc'] = $cc;
-                    $config['data'] = $data;
-                    $config['subject'] = 'Pengajuan Reimbursement - ' . $users->name;
-                    $config['template'] = '/email/pengajuan';
-                    self::sendEmail($config);
-
-                    $result['api_status'] = 1;
-                    $result['api_code'] = 200;
-                    $result['api_message'] = 'Pengajuan berhasil ditambah';
                 }
             }
+        }else{
+
         }
+
 
         $res = response()->json($result);
         $res->send();
