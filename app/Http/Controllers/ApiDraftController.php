@@ -30,17 +30,8 @@ class ApiDraftController extends \crocodicstudio\crudbooster\controllers\ApiCont
             ->whereNull('deleted_at')
             ->where('id_users', $id)
             ->where('status','Draft')
-            ->orderBy('strtotime', 'DESC');
-        if (Request::input('date_start') != '' && Request::input('date_end') != ''){
-            $date_start = date('Y-m-d H:i:s', strtotime(Request::input('date_start')));
-            $date_end = date('Y-m-d H:i:s', strtotime(Request::input('date_end') . ' +1 day'));
-            $start = strtotime($date_start);
-            $end = strtotime($date_end);
-
-            $pengajuan = $pengajuan->where('strtotime', '>=', $start)
-                ->where('strtotime', '<=', $end);
-        }
-        $pengajuan = $pengajuan->paginate(20);
+            ->orderBy('strtotime', 'DESC')
+            ->paginate(20);
 
         $list_date = [];
         $i = 0;
@@ -80,7 +71,7 @@ class ApiDraftController extends \crocodicstudio\crudbooster\controllers\ApiCont
 
             $i++;
         }
-        if(!empty($pengajuan)){
+        if($i > 0){
             $rest['date'] = $date;
             $rest['list'] = $list;
             $item[] = $rest;
