@@ -37,6 +37,7 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
             ->where('strtotime', '<=', $end)
             ->whereNull('deleted_at')
             ->where('id_users', $id)
+            ->whereIn('status',['Diproses','Disetujui','Ditolak'])
             ->orderBy('strtotime', 'DESC')
             ->paginate(20);
         foreach ($pengajuan as $row) {

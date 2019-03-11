@@ -24,7 +24,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 
         $validator['id'] = 'required'; //id users
         $validator['type'] = 'required|in:draft,submit';
-        if(Request::input('type') == 'submit'){
+        if (Request::input('type') == 'submit') {
             $validator['name'] = 'required';
             $validator['nota'] = 'required|file';
             CRUDBooster::Validator($validator);
@@ -64,14 +64,12 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                 $json_message = '';
                 $json = json_decode($nota);
                 $total_nominal = 0;
-                $save = [];
 
                 /**
                  * VALIDATE JSON FILE
                  */
-                $total_row = 0;
                 foreach ($json as $row) {
-                    if ($row->type == 'new'){
+                    if ($row->type == 'new') {
                         if ($row->image == '') {
                             $valid_json = false;
                             $json_message .= 'Image nota tidak boleh kosong';
@@ -89,18 +87,9 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                             $json_message .= 'Kategori nota tidak boleh kosong';
                             break;
                         } else {
-                            $rest['created_at'] = $created_at;
-                            $rest['image'] = $row->image;
-                            $rest['date'] = date('Y-m-d', strtotime($row->date));
-                            $rest['nominal'] = number_format($row->nominal, 0, '', '');
-                            $rest['id_kategori'] = $row->id_kategori;
-                            $rest['description'] = $row->description;
                             $total_nominal += (int)number_format($row->nominal, 0, '', '');
-
-                            $save[] = $rest;
-                            $total_row++;
                         }
-                    }elseif ($row->type == 'update' || $row->type == 'existing'){
+                    } elseif ($row->type == 'update' || $row->type == 'existing') {
                         if ($row->image == '') {
                             $valid_json = false;
                             $json_message .= 'Image nota tidak boleh kosong';
@@ -118,7 +107,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                             $json_message .= 'Kategori nota tidak boleh kosong';
                             break;
                         } else {
-                            $total_row++;
+                            $total_nominal += (int)number_format($row->nominal, 0, '', '');
                         }
                     }
                 }
@@ -131,16 +120,24 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     /**
                      * SAVE PENGAJUAN
                      */
-                    $save_pengajuan['created_at'] = $created_at;
-                    $save_pengajuan['strtotime'] = strtotime($save_pengajuan['created_at']);
+                    $id_pengajuan = Request::input('id_pengajuan');
+                    $save_pengajuan['time_server'] = $now;
+                    $save_pengajuan['strtotime'] = strtotime($created_at);
                     $save_pengajuan['id_users'] = Request::input('id');
                     $save_pengajuan['name'] = Request::input('name');
                     $save_pengajuan['description'] = Request::input('description');
                     $save_pengajuan['status'] = 'Diproses';
                     $save_pengajuan['total_nominal'] = $total_nominal;
-                    $id_pengajuan = DB::table('pengajuan')->insertGetId($save_pengajuan);
+                    if ($id_pengajuan == '' || $id_pengajuan == 0) {
+                        $save_pengajuan['created_at'] = $created_at;
+                        $id_pengajuan = DB::table('pengajuan')->insertGetId($save_pengajuan);
+                        $act = ($id_pengajuan ? TRUE : FALSE);
+                    } else {
+                        $save_pengajuan['updated_at'] = $now;
+                        $act = DB::table('pengajuan')->where('id', $id_pengajuan)->update($save_pengajuan);
+                    }
 
-                    if (!$id_pengajuan) {
+                    if (!$id_pengajuan || !$act) {
                         $result['api_status'] = 0;
                         $result['api_code'] = 401;
                         $result['api_message'] = 'Pengajuan gagal, silahkan di coba kembali';
@@ -150,46 +147,90 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                          */
                         $table = '';
                         $no = 1;
-                        foreach ($save as $key => $value) {
-                            $image = CRUDBooster::uploadBase64($value['image']);
-                            $save[$key]['id_pengajuan'] = $id_pengajuan;
-                            $save[$key]['image'] = $image;
+                        $save = [];
+                        foreach ($json as $row) {
+                            if ($row->type == 'new') {
+                                $image = CRUDBooster::uploadBase64($row->image);
 
-                            $kategori = DB::table('kategori')
-                                ->where('id', $row->id_kategori)
-                                ->first();
+                                $rest['id_pengajuan'] = $id_pengajuan;
+                                $rest['created_at'] = $created_at;
+                                $rest['image'] = $image;
+                                $rest['date'] = date('Y-m-d', strtotime($row->date));
+                                $rest['nominal'] = number_format($row->nominal, 0, '', '');
+                                $rest['id_kategori'] = $row->id_kategori;
+                                $rest['description'] = $row->description;
+
+                                $save[] = $rest;
+                            } elseif ($row->type == 'update') {
+                                $img = substr($row->image, 0, 4);
+                                if ($img != 'http') {
+                                    $image = CRUDBooster::uploadBase64($row->image);
+                                }else{
+                                    $detail = DB::table('pengajuan_detail')
+                                        ->where('id',$row->id)
+                                        ->first();
+                                    $image = $detail->image;
+                                }
+
+                                $change['updated_at'] = $now;
+                                $change['image'] = $image;
+                                $change['date'] = date('Y-m-d', strtotime($row->date));
+                                $change['nominal'] = number_format($row->nominal, 0, '', '');
+                                $change['id_kategori'] = $row->id_kategori;
+                                $change['description'] = $row->description;
+                                DB::table('pengajuan_detail')->where('id',$row->id)->update($change);
+                            } elseif ($row->type == 'delete') {
+                                $img = substr($row->image, 0, 4);
+                                if ($img == 'http') {
+                                    $detail = DB::table('pengajuan_detail')
+                                        ->where('id',$row->id)
+                                        ->first();
+                                    $path_delete = storage_path('app/'.$detail->image);
+                                    if (file_exists($path_delete)) {
+                                        unlink($path_delete);
+                                    }
+                                }
+
+                                DB::table('pengajuan_detail')->where('id',$row->id)->delete();
+                            }
 
                             /**
                              * MAKE TABLE EMAIL
                              */
-                            $table .= '<tr>
-                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                        vertical-align: top;font-size: 12px;">
-                                    ' . $no++ . '
-                                </td>
-                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                        vertical-align: top;font-size: 12px;">
-                                    <a href="' . url($image) . '" target="_blank">
-                                        <img src="' . url($image) . '" alt="" width="100%">
-                                    </a>
-                                </td>
-                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                        vertical-align: top;font-size: 12px;">
-                                    ' . date('d M Y', strtotime($row->date)) . '
-                                </td>
-                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                        vertical-align: top;font-size: 12px;">
-                                    ' . $kategori->name . '
-                                </td>
-                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                        vertical-align: top;font-size: 12px;">
-                                    ' . $row->description . '
-                                </td>
-                                <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
-                                                        vertical-align: top;font-size: 12px;">
-                                    Rp' . number_format($row->nominal, 0, ',', '.') . '
-                                </td>
-                            </tr>';
+                            if ($row->type == 'new' || $row->type == 'update') {
+                                $kategori = DB::table('kategori')
+                                    ->where('id', $row->id_kategori)
+                                    ->first();
+
+                                $table .= '<tr>
+                                    <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                            vertical-align: top;font-size: 12px;">
+                                        ' . $no++ . '
+                                    </td>
+                                    <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                            vertical-align: top;font-size: 12px;">
+                                        <a href="' . url($image) . '" target="_blank">
+                                            <img src="' . url($image) . '" alt="" width="100%">
+                                        </a>
+                                    </td>
+                                    <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                            vertical-align: top;font-size: 12px;">
+                                        ' . date('d M Y', strtotime($row->date)) . '
+                                    </td>
+                                    <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                            vertical-align: top;font-size: 12px;">
+                                        ' . $kategori->name . '
+                                    </td>
+                                    <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                            vertical-align: top;font-size: 12px;">
+                                        ' . $row->description . '
+                                    </td>
+                                    <td style="border: 1px solid #96a5b1;border-collapse: collapse;padding: 5px;color: #2d263b;
+                                                            vertical-align: top;font-size: 12px;">
+                                        Rp' . number_format($row->nominal, 0, ',', '.') . '
+                                    </td>
+                                </tr>';
+                            }
                         }
                         DB::table('pengajuan_detail')->insert($save);
 
@@ -271,8 +312,135 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     }
                 }
             }
-        }else{
+        } else {
+            $nota = Request::file('nota');
+            $now = date('Y-m-d H:i:s');
+            $created_at = (Request::input('created_at') == '' ? $now :
+                date('Y-m-d H:i:s', strtotime(Request::input('created_at'))));
 
+            $users = DB::table('users')
+                ->where('id', Request::input('id'))
+                ->first();
+            if (empty($users)) {
+                $result['api_status'] = 0;
+                $result['api_code'] = 401;
+                $result['api_message'] = 'Akun anda tidak ditemukan';
+            } elseif ($users->deleted_at != '') {
+                $result['api_status'] = 0;
+                $result['api_code'] = 440;
+                $result['api_message'] = 'Akun anda tidak dapat digunakan, silahkan login ulang';
+            } elseif ($nota && $nota->getClientOriginalExtension() != 'json') {
+                $result['api_status'] = 0;
+                $result['api_code'] = 401;
+                $result['api_message'] = 'Nota harus berupa json';
+            } elseif ($nota && (file_get_contents($nota) == '' || !CRUDBooster::isJSON($nota))) {
+                $result['api_status'] = 0;
+                $result['api_code'] = 401;
+                $result['api_message'] = 'Json tidak valid';
+            } elseif ($nota && !is_array(json_decode($nota))) {
+                $result['api_status'] = 0;
+                $result['api_code'] = 401;
+                $result['api_message'] = 'Json harus berupa array';
+            } else {
+                $json_message = '';
+                $json = json_decode($nota);
+                $total_nominal = 0;
+
+                /**
+                 * VALIDATE JSON FILE
+                 */
+                foreach ($json as $row) {
+                    $total_nominal += (int)number_format($row->nominal, 0, '', '');
+                }
+
+                /**
+                 * SAVE PENGAJUAN
+                 */
+                $id_pengajuan = Request::input('id_pengajuan');
+                $save_pengajuan['time_server'] = $now;
+                $save_pengajuan['strtotime'] = strtotime($created_at);
+                $save_pengajuan['id_users'] = Request::input('id');
+                $save_pengajuan['name'] = Request::input('name');
+                $save_pengajuan['description'] = Request::input('description');
+                $save_pengajuan['status'] = 'Draft';
+                $save_pengajuan['total_nominal'] = $total_nominal;
+                if ($id_pengajuan == '' || $id_pengajuan == 0) {
+                    $save_pengajuan['created_at'] = $created_at;
+                    $id_pengajuan = DB::table('pengajuan')->insertGetId($save_pengajuan);
+                    $act = ($id_pengajuan ? TRUE : FALSE);
+                } else {
+                    $save_pengajuan['updated_at'] = $now;
+                    $act = DB::table('pengajuan')->where('id', $id_pengajuan)->update($save_pengajuan);
+                }
+
+                if (!$id_pengajuan || !$act) {
+                    $result['api_status'] = 0;
+                    $result['api_code'] = 401;
+                    $result['api_message'] = 'Pengajuan gagal, silahkan di coba kembali';
+                } else {
+                    /**
+                     * SAVE DETAIL PENGAJUAN
+                     */
+                    $no = 1;
+                    $save = [];
+                    foreach ($json as $row) {
+                        if ($row->type == 'new') {
+                            $image = ($row->image == '' ? '' : CRUDBooster::uploadBase64($row->image));
+
+                            $rest['id_pengajuan'] = $id_pengajuan;
+                            $rest['created_at'] = $created_at;
+                            $rest['image'] = $image;
+                            $rest['date'] = date('Y-m-d', strtotime($row->date));
+                            $rest['nominal'] = number_format($row->nominal, 0, '', '');
+                            $rest['id_kategori'] = $row->id_kategori;
+                            $rest['description'] = $row->description;
+
+                            $save[] = $rest;
+                        } elseif ($row->type == 'update') {
+                            $detail = DB::table('pengajuan_detail')
+                                ->where('id',$row->id)
+                                ->first();
+                            $img = substr($row->image, 0, 4);
+                            if ($img != 'http') {
+                                $image = CRUDBooster::uploadBase64($row->image);
+                                $path_delete = storage_path('app/'.$detail->image);
+                                if (file_exists($path_delete)) {
+                                    unlink($path_delete);
+                                }
+                            }else{
+                                $image = $detail->image;
+                            }
+
+                            $change['updated_at'] = $now;
+                            $change['image'] = $image;
+                            $change['date'] = date('Y-m-d', strtotime($row->date));
+                            $change['nominal'] = number_format($row->nominal, 0, '', '');
+                            $change['id_kategori'] = $row->id_kategori;
+                            $change['description'] = $row->description;
+                            DB::table('pengajuan_detail')->where('id',$row->id)->update($change);
+                        } elseif ($row->type == 'delete') {
+                            $img = substr($row->image, 0, 4);
+                            if ($img == 'http') {
+                                $detail = DB::table('pengajuan_detail')
+                                    ->where('id',$row->id)
+                                    ->first();
+                                $path_delete = storage_path('app/'.$detail->image);
+                                if (file_exists($path_delete)) {
+                                    unlink($path_delete);
+                                }
+                            }
+
+                            DB::table('pengajuan_detail')->where('id',$row->id)->delete();
+                        }
+                    }
+                    DB::table('pengajuan_detail')->insert($save);
+
+                    $result['api_status'] = 1;
+                    $result['api_code'] = 200;
+                    $result['api_message'] = 'Pengajuan berhasil ditambah';
+                    $result['id_reimbursement'] = $id_pengajuan;
+                }
+            }
         }
 
 
