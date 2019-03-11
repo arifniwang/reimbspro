@@ -62,7 +62,7 @@ class ApiHomeController extends \crocodicstudio\crudbooster\controllers\ApiContr
 
             $pengajuan_bulanan = DB::table('pengajuan')
                 ->whereNull('deleted_at')
-                ->where('status', 'Diterima')
+                ->where('status', 'Disetujui')
                 ->where('id_users', $id)
                 ->where('year', $tahun)
                 ->where('month', $bulan)
