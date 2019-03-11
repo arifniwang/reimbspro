@@ -23,13 +23,13 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
         CRUDBooster::Validator($validator);
 
         $id = Request::input('id');
+        $status = Request::input('status');
         $item = [];
 
         $pengajuan = DB::table('pengajuan')
             ->select('id', 'total_nominal as nominal', 'name', 'description', 'status', 'created_at')
             ->whereNull('deleted_at')
             ->where('id_users', $id)
-            ->whereIn('status',['Diproses','Disetujui','Ditolak'])
             ->orderBy('strtotime', 'DESC');
         if (Request::input('date_start') != '' && Request::input('date_end') != ''){
             $date_start = date('Y-m-d H:i:s', strtotime(Request::input('date_start')));
@@ -39,6 +39,11 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
 
             $pengajuan = $pengajuan->where('strtotime', '>=', $start)
                 ->where('strtotime', '<=', $end);
+        }
+        if ($status == ''){
+            $pengajuan = $pengajuan->whereIn('status',['Diproses','Disetujui','Ditolak']);
+        }else{
+            $pengajuan = $pengajuan->where('status',$status);
         }
         $pengajuan = $pengajuan->paginate(20);
 
