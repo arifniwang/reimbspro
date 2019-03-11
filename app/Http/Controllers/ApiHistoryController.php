@@ -3,7 +3,7 @@
 use Session;
 use Request;
 use DB;
-use CRUDBooster;
+use crocodicstudio\crudbooster\helpers\CRUDBooster;
 
 class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiController
 {
