@@ -71,11 +71,11 @@ class ApiReimbursementDetailController extends \crocodicstudio\crudbooster\contr
             $result['status'] = $pengajuan->status;
             $result['created_at'] = $pengajuan->created_at;
             $result['nota'] = $nota;
-
-            $res = response()->json($result);
-            $res->send();
-            exit;
         }
+
+        $res = response()->json($result);
+        $res->send();
+        exit;
     }
 
     public function hook_query(&$query)

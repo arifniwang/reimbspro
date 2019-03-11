@@ -24,9 +24,12 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 
         $validator['id'] = 'required'; //id users
         $validator['type'] = 'required|in:draft,submit';
-//        $validator['name'] = 'required';
-//        $validator['description'] = 'required';
-//        $validator['nota'] = 'required|file';
+        if(Request::input('type') == 'submit'){
+
+        }
+        $validator['name'] = 'required';
+        $validator['description'] = 'required';
+        $validator['nota'] = 'required|file';
         CRUDBooster::Validator($validator);
 
         $nota = Request::file('nota');
