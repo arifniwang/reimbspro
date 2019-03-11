@@ -20,11 +20,13 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 
     public function hook_before(&$postdata)
     {
-        //This method will be execute before run the main process
-        $validator['id'] = 'required';
-        $validator['name'] = 'required';
-        $validator['description'] = 'required';
-        $validator['nota'] = 'required|file';
+        set_time_limit(90); // 1.5 minutes
+
+        $validator['id'] = 'required'; //id users
+        $validator['type'] = 'required|in:draft,submit';
+//        $validator['name'] = 'required';
+//        $validator['description'] = 'required';
+//        $validator['nota'] = 'required|file';
         CRUDBooster::Validator($validator);
 
         $nota = Request::file('nota');
@@ -195,7 +197,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     $save_usr_notif['content'] = 'Pengajuan “' . Request::input('name') . '” berhasil dikirim dan sedang diproses';
                     $save_usr_notif['date'] = date('Y-m-d');
                     $save_usr_notif['type'] = 'Diproses';
-                    DB::table('users_notification')->insert($save_usr_notif);
+                    $act_notif = DB::table('users_notification')->insert($save_usr_notif);
 
                     $regid = DB::table('users_regid')
                         ->where('id_users', $users->id)
@@ -203,6 +205,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                         ->toArray();
                     $data_notif['title'] = $save_usr_notif['title'];
                     $data_notif['content'] = $save_usr_notif['content'];
+                    $data_notif['id'] = $act_notif;
                     $data_notif['id_pengajuan'] = $id_pengajuan;
                     CRUDBooster::sendFCM($regid, $data_notif);
 

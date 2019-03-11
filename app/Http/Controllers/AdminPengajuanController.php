@@ -58,7 +58,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             $save_usr_notif['content'] = 'Pengajuan “' . $pengajuan->name . '” berhasil dikirim dan diterima oleh administrator';
             $save_usr_notif['date'] = date('Y-m-d');
             $save_usr_notif['type'] = 'Disetujui';
-            DB::table('users_notification')->insert($save_usr_notif);
+            $act_notif = DB::table('users_notification')->insert($save_usr_notif);
 
             $regid = DB::table('users_regid')
                 ->where('id_users', $pengajuan->id_users)
@@ -66,6 +66,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
                 ->toArray();
             $data_notif['title'] = $save_usr_notif['title'];
             $data_notif['content'] = $save_usr_notif['content'];
+            $data_notif['id'] = $act_notif;
             $data_notif['id_pengajuan'] = $id;
             CRUDBooster::sendFCM($regid, $data_notif);
 
@@ -107,7 +108,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             $save_usr_notif['content'] = 'Pengajuan “' . $pengajuan->name . '” berhasil dikirim dan ditolak oleh administrator';
             $save_usr_notif['date'] = date('Y-m-d');
             $save_usr_notif['type'] = 'Ditolak';
-            DB::table('users_notification')->insert($save_usr_notif);
+            $act_notif = DB::table('users_notification')->insert($save_usr_notif);
 
             $regid = DB::table('users_regid')
                 ->where('id_users', $pengajuan->id_users)
@@ -115,6 +116,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
                 ->toArray();
             $data_notif['title'] = $save_usr_notif['title'];
             $data_notif['content'] = $save_usr_notif['content'];
+            $data_notif['id'] = $act_notif;
             $data_notif['id_pengajuan'] = $id;
             CRUDBooster::sendFCM($regid, $data_notif);
 
@@ -400,7 +402,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
     public function hook_query_index(&$query)
     {
         //Your code here
-
+        $query->whereIn('status',['Diproses','Ditolak','Disetujui']);
     }
 
     /*
