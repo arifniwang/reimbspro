@@ -20,26 +20,30 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
     {
         //This method will be execute before run the main process
         $validator['id'] = 'required';
-        $validator['date_start'] = 'required|date';
-        $validator['date_end'] = 'required|date';
         CRUDBooster::Validator($validator);
 
         $id = Request::input('id');
-        $date_start = date('Y-m-d H:i:s', strtotime(Request::input('date_start')));
-        $date_end = date('Y-m-d H:i:s', strtotime(Request::input('date_end') . ' +1 day'));
-        $start = strtotime($date_start);
-        $end = strtotime($date_end);
         $item = [];
 
         $pengajuan = DB::table('pengajuan')
             ->select('id', 'total_nominal as nominal', 'name', 'description', 'status', 'created_at')
-            ->where('strtotime', '>=', $start)
-            ->where('strtotime', '<=', $end)
             ->whereNull('deleted_at')
             ->where('id_users', $id)
             ->whereIn('status',['Diproses','Disetujui','Ditolak'])
-            ->orderBy('strtotime', 'DESC')
-            ->paginate(20);
+            ->orderBy('strtotime', 'DESC');
+        if (Request::input('date_start') != '' && Request::input('date_end') != ''){
+            $date_start = date('Y-m-d H:i:s', strtotime(Request::input('date_start')));
+            $date_end = date('Y-m-d H:i:s', strtotime(Request::input('date_end') . ' +1 day'));
+            $start = strtotime($date_start);
+            $end = strtotime($date_end);
+
+            $pengajuan = $pengajuan->where('strtotime', '>=', $start)
+                ->where('strtotime', '<=', $end);
+        }
+        $pengajuan = $pengajuan->paginate(20);
+
+        $list_date = [];
+        $i = 0;
         foreach ($pengajuan as $row) {
             $nota = DB::table('pengajuan_detail')
                 ->select('pengajuan_detail.id', 'pengajuan_detail.image', 'pengajuan_detail.date', 'pengajuan_detail.nominal',
@@ -54,7 +58,26 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
             }
             $row->nota = $nota;
 
-            $item[] = $row;
+            $date = date('Y-m-d', strtotime($row->created_at));
+            if (!in_array($date,$list_date)){
+                array_push($list_date,$date);
+                $list = [];
+                $list[] = $row;
+                if ($i != 0){
+                    $rest['date'] = $date;
+                    $rest['list'] = $list;
+                    $item[] = $rest;
+                }
+            }else{
+                $list[] = $row;
+            }
+
+            $i++;
+        }
+        if(!empty($pengajuan)){
+            $rest['date'] = $date;
+            $rest['list'] = $list;
+            $item[] = $rest;
         }
 
         $result['api_status'] = 1;

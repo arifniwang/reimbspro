@@ -68,6 +68,8 @@ class ApiHomeController extends \crocodicstudio\crudbooster\controllers\ApiContr
                 ->where('month', $bulan)
                 ->sum('total_nominal');
 
+            if ($pengajuan_bulanan == 0) continue;
+
             $rest_bulanan['id'] = $no++;
             $rest_bulanan['date_start'] = date('Y-m-', strtotime($value)) . '01';
             $rest_bulanan['date_end'] = date("Y-m-t", strtotime($value));;
@@ -84,6 +86,7 @@ class ApiHomeController extends \crocodicstudio\crudbooster\controllers\ApiContr
             ->select('id', 'total_nominal as nominal', 'name', 'description', 'status', 'created_at')
             ->whereNull('deleted_at')
             ->where('id_users', $id)
+            ->whereIn('status',['Diproses','Disetujui','Ditolak'])
             ->orderBy('id', 'DESC')
             ->limit(20)
             ->get();
@@ -101,7 +104,6 @@ class ApiHomeController extends \crocodicstudio\crudbooster\controllers\ApiContr
 
             $row->nota = $nota;
         }
-
 
         $result['api_status'] = 1;
         $result['api_code'] = 200;
