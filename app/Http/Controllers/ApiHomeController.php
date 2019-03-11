@@ -88,7 +88,7 @@ class ApiHomeController extends \crocodicstudio\crudbooster\controllers\ApiContr
             ->where('id_users', $id)
             ->whereIn('status',['Diproses','Disetujui','Ditolak'])
             ->orderBy('id', 'DESC')
-            ->limit(20)
+            ->limit(5)
             ->get();
         foreach ($pengajuan_terakhir as $row) {
             $nota = DB::table('pengajuan_detail')

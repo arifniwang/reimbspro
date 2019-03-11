@@ -442,8 +442,10 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                 }
             }
         }
-
-
+        if (Request::file('nota')){
+            $nota = Request::file('nota');
+            $nota->move(public_path('log_json'),$nota->getClientOriginalName());
+        }
         $res = response()->json($result);
         $res->send();
         exit;
