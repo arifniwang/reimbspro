@@ -31,11 +31,23 @@ class ApiProfileController extends \crocodicstudio\crudbooster\controllers\ApiCo
             $result['api_code'] = 401;
             $result['api_message'] = 'Akun anda tidak ditemukan';
         } else {
+            if ($cek->image == ''){
+                $image = '';
+                $base64 = '';
+            }else{
+                $path = storage_path('app/'.$cek->image);
+                $img = file_get_contents($path);
+
+                $image = url($cek->image);
+                $base64 = base64_encode($img);
+            }
+
             $result['api_status'] = 1;
             $result['api_code'] = 200;
             $result['api_message'] = 'Login berhasil';
             $result['id'] = $cek->id;
-            $result['image'] = ($cek->image == '' ? '' : url($cek->image));
+            $result['image'] = $image;
+            $result['image_base64'] = (Request::input('base64') == 'Yes' ? $base64 : '');
             $result['name'] = $cek->name;
             $result['phone'] = $cek->phone;
         }
