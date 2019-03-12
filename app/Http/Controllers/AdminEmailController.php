@@ -14,7 +14,7 @@ class AdminEmailController extends \crocodicstudio\crudbooster\controllers\CBCon
         $this->table = "email";
         $this->title_field = "name";
         $this->limit = 20;
-        $this->orderby = "id,desc";
+        $this->orderby = "id,asc";
         $this->show_numbering = FALSE;
         $this->global_privilege = FALSE;
         $this->button_table_action = TRUE;

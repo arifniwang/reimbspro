@@ -57,7 +57,7 @@ class ApiReimbursementDetailController extends \crocodicstudio\crudbooster\contr
                 ->get();
             foreach ($nota as $row) {
                 $row->image = ($row->image != '' ? url($row->image) : '');
-                $row->id_reimbusement = $row->id;
+                $row->id_reimbusement = $pengajuan->id;
                 $row->type = 'existing';
             }
 

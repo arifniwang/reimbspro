@@ -1,12 +1,45 @@
 [
-  {
-    "id": 0,
-    "image": "iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAAAP1BMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACzJYIvAAAAFHRSTlMAECAwP0BgcH+AkJ+gv8DQ3+Dv8BfikHEAAAMPSURBVHja7d3BcuIwDIBhtzQpZlNns/D+z7qXtcOMNFrZ2DRMfx2NQ/zBASsSSbg9HCnkSE86UIsABAgQIECAdIGkWBebaz1Lnr64IFvlIpICiaEukgsy5dcmFyRVLiICAQIECBAgwyDWTiC6Tj5ZbzG5PpRo7keAAAECBAiQ14Ioqe5y/hfzK0GatyhAgAABAgTIy0J8qXcCAgQIECBAXgJilVGnyvXMMq+d83uZqe5kreJpV+M7fEnHKCsAAQIECJCfB9m+RCRr6NoKueR3uMhZV9+5S2yDO+iah47WCggECBAgQP4HSQ+H8ru2fuRY5dAiD7w8vorQM3wf7BQOH0CAAAEC5OdBrERyltNnOf9SCVnlGZMx9OVbtLOGYF3t77plsmoIwSp8AAECBAiQb4ZsMn2MHyL2PuS1Y8ZariNffUmsCfF9/GN2GrVX44EAAQIECJBhkN8y1Y1TjjJrKUOLTDdP+UQnKyEOcpZSIZ6tqm77XsvqoFO+JLN/PLhmxZ71ESBAgAAB8kxISTLvOoxl9luKs6Vwe/vMr80yid2XeJKzSixKTm3lyHabk6/Tq/nfU7V/u65tPAMCBAgQIEAaIHvqWsasqu67THXvftnza3ue+kf5Zc+zTs0QrYHZ2tzEyqJ65V4rNEPMWUCAAAEC5FsgSuI5W+dUSrhzzlM/Ze13T2LfBkPGNJ4pX9IEBAgQIECAHA9S+efYZNVrSxK7x5tcotXAvFqQubmq64v2XVRlB11sro8AAQIECJDxkK216Vip157kkJL9KrEqy7GSca2qO/h2IrfKLYpvOREIECBAgAAZBsn3iDzHswjzhpPlVpL7gZuE/JL3oKyF7Cvc70FptcuZTXXNT7vwNdWZEG0WECBAgAABcjiIL3yPknCW/YEAAQIECJDDQLQHKbjy2vJkwUU7pUyglWR89NMuHt/IVJcVgAABAgQIkD6QnlfjfQf2CCBAgAABAqQLJFmJpDK0GZCtzHqXZ1Rqv1G+/V0Sa6X9SqrboYOuuaju26I46+xAgAABAgRIPeQv7xhc+Z86sVcAAAAASUVORK5CYII=",
-    "date": "2019-02-01",
-    "nominal": 15000,
-    "id_kategori": 2,
-    "kategori": "Transport",
-    "description": "Sample Description 2",
-    "type": "new"
-  }
+    {
+        "id": 7,
+        "image": "http://rembspro.test/uploads/0/2019-03/2647b0c540576571c48f7dbbc7ab47c4.jpg",
+        "date": "2019-02-01",
+        "nominal": 25000,
+        "description": "Sample Description 2",
+        "id_kategori": 2,
+        "kategori": "Transport",
+        "id_reimbusement": 2,
+        "type": "existing"
+    },
+    {
+        "id": 8,
+        "image": "http://rembspro.test/uploads/0/2019-03/3636cb63be6d943d645b86e0a17317d0.jpg",
+        "date": "2019-02-01",
+        "nominal": 20000,
+        "description": "Sample Description 3",
+        "id_kategori": 2,
+        "kategori": "Transport",
+        "id_reimbusement": 2,
+        "type": "delete"
+    },
+    {
+        "id": 9,
+        "image": "http://rembspro.test/uploads/0/2019-03/a70385494723cb03312cdbc9e2c71a29.jpg",
+        "date": "2019-02-01",
+        "nominal": 20000,
+        "description": "Sample Description 1",
+        "id_kategori": 2,
+        "kategori": "Transport",
+        "id_reimbusement": 2,
+        "type": "update"
+    },
+    {
+        "id": 0,
+        "image": "iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAAAP1BMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACzJYIvAAAAFHRSTlMAECAwP0BgcH+AkJ+gv8DQ3+Dv8BfikHEAAAMPSURBVHja7d3BcuIwDIBhtzQpZlNns/D+z7qXtcOMNFrZ2DRMfx2NQ/zBASsSSbg9HCnkSE86UIsABAgQIECAdIGkWBebaz1Lnr64IFvlIpICiaEukgsy5dcmFyRVLiICAQIECBAgwyDWTiC6Tj5ZbzG5PpRo7keAAAECBAiQ14Ioqe5y/hfzK0GatyhAgAABAgTIy0J8qXcCAgQIECBAXgJilVGnyvXMMq+d83uZqe5kreJpV+M7fEnHKCsAAQIECJCfB9m+RCRr6NoKueR3uMhZV9+5S2yDO+iah47WCggECBAgQP4HSQ+H8ru2fuRY5dAiD7w8vorQM3wf7BQOH0CAAAEC5OdBrERyltNnOf9SCVnlGZMx9OVbtLOGYF3t77plsmoIwSp8AAECBAiQb4ZsMn2MHyL2PuS1Y8ZariNffUmsCfF9/GN2GrVX44EAAQIECJBhkN8y1Y1TjjJrKUOLTDdP+UQnKyEOcpZSIZ6tqm77XsvqoFO+JLN/PLhmxZ71ESBAgAAB8kxISTLvOoxl9luKs6Vwe/vMr80yid2XeJKzSixKTm3lyHabk6/Tq/nfU7V/u65tPAMCBAgQIEAaIHvqWsasqu67THXvftnza3ue+kf5Zc+zTs0QrYHZ2tzEyqJ65V4rNEPMWUCAAAEC5FsgSuI5W+dUSrhzzlM/Ze13T2LfBkPGNJ4pX9IEBAgQIECAHA9S+efYZNVrSxK7x5tcotXAvFqQubmq64v2XVRlB11sro8AAQIECJDxkK216Vip157kkJL9KrEqy7GSca2qO/h2IrfKLYpvOREIECBAgAAZBsn3iDzHswjzhpPlVpL7gZuE/JL3oKyF7Cvc70FptcuZTXXNT7vwNdWZEG0WECBAgAABcjiIL3yPknCW/YEAAQIECJDDQLQHKbjy2vJkwUU7pUyglWR89NMuHt/IVJcVgAABAgQIkD6QnlfjfQf2CCBAgAABAqQLJFmJpDK0GZCtzHqXZ1Rqv1G+/V0Sa6X9SqrboYOuuaju26I46+xAgAABAgRIPeQv7xhc+Z86sVcAAAAASUVORK5CYII=",
+        "date": "2019-02-01",
+        "nominal": 15000,
+        "id_kategori": 2,
+        "kategori": "Transport",
+        "description": "Sample Description 3",
+        "type": "new"
+    }
 ]

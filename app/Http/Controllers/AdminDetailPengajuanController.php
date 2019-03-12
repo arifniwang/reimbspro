@@ -33,12 +33,14 @@ class AdminDetailPengajuanController extends \crocodicstudio\crudbooster\control
 
         # START COLUMNS DO NOT REMOVE THIS LINE
         $this->col = [];
-        $this->col[] = array("label" => "Pengajuan", "name" => "id_pengajuan", "join" => "pengajuan,name");
+//        $this->col[] = array("label" => "Pengajuan", "name" => "id_pengajuan", "join" => "pengajuan,name");
         $this->col[] = array("label" => "Image", "name" => "image", "image" => true);
         $this->col[] = array("label" => "Date", "name" => "date");
         $this->col[] = array("label" => "Nominal", "name" => "nominal", "callback" => function ($row) {
             return number_format($row->nominal, 0, ',', '.');
         });
+        $this->col[] = array("label" => "Kategori", "name" => "id_kategori", "join" => "kategori,name");
+        $this->col[] = array("label" => "Description", "name" => "description");
 
         # END COLUMNS DO NOT REMOVE THIS LINE
         # START FORM DO NOT REMOVE THIS LINE

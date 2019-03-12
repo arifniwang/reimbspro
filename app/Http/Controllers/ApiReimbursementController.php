@@ -120,7 +120,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     /**
                      * SAVE PENGAJUAN
                      */
-                    $id_pengajuan = Request::input('id_pengajuan');
+                    $id_pengajuan = Request::input('id_reimbursement');
                     $save_pengajuan['time_server'] = $now;
                     $save_pengajuan['strtotime'] = strtotime($created_at);
                     $save_pengajuan['id_users'] = Request::input('id');
@@ -150,7 +150,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                         $save = [];
                         foreach ($json as $row) {
                             if ($row->type == 'new') {
-                                $image = CRUDBooster::uploadBase64($row->image);
+                                $image = ($row->image == '' ? '' : CRUDBooster::uploadBase64($row->image));
 
                                 $rest['id_pengajuan'] = $id_pengajuan;
                                 $rest['created_at'] = $created_at;
@@ -162,13 +162,17 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 
                                 $save[] = $rest;
                             } elseif ($row->type == 'update') {
+                                $detail = DB::table('pengajuan_detail')
+                                    ->where('id',$row->id)
+                                    ->first();
                                 $img = substr($row->image, 0, 4);
                                 if ($img != 'http') {
                                     $image = CRUDBooster::uploadBase64($row->image);
+                                    $path_delete = storage_path('app/'.$detail->image);
+                                    if ($detail->image != '' && file_exists($path_delete)) {
+                                        unlink($path_delete);
+                                    }
                                 }else{
-                                    $detail = DB::table('pengajuan_detail')
-                                        ->where('id',$row->id)
-                                        ->first();
                                     $image = $detail->image;
                                 }
 
@@ -180,18 +184,8 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                                 $change['description'] = $row->description;
                                 DB::table('pengajuan_detail')->where('id',$row->id)->update($change);
                             } elseif ($row->type == 'delete') {
-                                $img = substr($row->image, 0, 4);
-                                if ($img == 'http') {
-                                    $detail = DB::table('pengajuan_detail')
-                                        ->where('id',$row->id)
-                                        ->first();
-                                    $path_delete = storage_path('app/'.$detail->image);
-                                    if (file_exists($path_delete)) {
-                                        unlink($path_delete);
-                                    }
-                                }
-
-                                DB::table('pengajuan_detail')->where('id',$row->id)->delete();
+                                $delete['deleted_at'] = $now;
+                                DB::table('pengajuan_detail')->where('id',$row->id)->update($delete);
                             }
 
                             /**
@@ -355,7 +349,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                 /**
                  * SAVE PENGAJUAN
                  */
-                $id_pengajuan = Request::input('id_pengajuan');
+                $id_pengajuan = Request::input('id_reimbursement');
                 $save_pengajuan['time_server'] = $now;
                 $save_pengajuan['strtotime'] = strtotime($created_at);
                 $save_pengajuan['id_users'] = Request::input('id');
@@ -380,7 +374,6 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                     /**
                      * SAVE DETAIL PENGAJUAN
                      */
-                    $no = 1;
                     $save = [];
                     foreach ($json as $row) {
                         if ($row->type == 'new') {
@@ -403,7 +396,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                             if ($img != 'http') {
                                 $image = CRUDBooster::uploadBase64($row->image);
                                 $path_delete = storage_path('app/'.$detail->image);
-                                if (file_exists($path_delete)) {
+                                if ($detail->image != '' && file_exists($path_delete)) {
                                     unlink($path_delete);
                                 }
                             }else{
@@ -418,18 +411,8 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                             $change['description'] = $row->description;
                             DB::table('pengajuan_detail')->where('id',$row->id)->update($change);
                         } elseif ($row->type == 'delete') {
-                            $img = substr($row->image, 0, 4);
-                            if ($img == 'http') {
-                                $detail = DB::table('pengajuan_detail')
-                                    ->where('id',$row->id)
-                                    ->first();
-                                $path_delete = storage_path('app/'.$detail->image);
-                                if (file_exists($path_delete)) {
-                                    unlink($path_delete);
-                                }
-                            }
-
-                            DB::table('pengajuan_detail')->where('id',$row->id)->delete();
+                            $delete['deleted_at'] = $now;
+                            DB::table('pengajuan_detail')->where('id',$row->id)->update($delete);
                         }
                     }
                     DB::table('pengajuan_detail')->insert($save);
