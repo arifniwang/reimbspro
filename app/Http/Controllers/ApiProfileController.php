@@ -36,10 +36,15 @@ class ApiProfileController extends \crocodicstudio\crudbooster\controllers\ApiCo
                 $base64 = '';
             }else{
                 $path = storage_path('app/'.$cek->image);
-                $img = file_get_contents($path);
+                if (file_exists($path)){
+                    $img = file_get_contents($path);
 
-                $image = url($cek->image);
-                $base64 = base64_encode($img);
+                    $image = url($cek->image);
+                    $base64 = base64_encode($img);
+                }else{
+                    $image = '';
+                    $base64 = '';
+                }
             }
 
             $result['api_status'] = 1;
