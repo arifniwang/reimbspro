@@ -42,7 +42,7 @@ class ApiNotificationController extends \crocodicstudio\crudbooster\controllers\
                 ->whereNull('pengajuan.deleted_at')
                 ->where('pengajuan.id_users', $id)
                 ->orderBy('users_notification.id','DESC')
-                ->paginate(20);
+                ->paginate(10);
 
             $item = [];
             foreach ($notification as $row) {

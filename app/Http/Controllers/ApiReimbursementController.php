@@ -317,6 +317,8 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
             $now = date('Y-m-d H:i:s');
             $created_at = (Request::input('created_at') == '' ? $now :
                 date('Y-m-d H:i:s', strtotime(Request::input('created_at'))));
+            $json = json_decode(file_get_contents($nota));
+            $total_nominal = 0;
 
             $users = DB::table('users')
                 ->where('id', Request::input('id'))
@@ -333,23 +335,20 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                 $result['api_status'] = 0;
                 $result['api_code'] = 401;
                 $result['api_message'] = 'Nota harus berupa json';
-            } elseif ($nota && (file_get_contents($nota) == '' || !CRUDBooster::isJSON($nota))) {
+            } elseif ($nota && (file_get_contents($nota) == '' || !CRUDBooster::isJSON(file_get_contents($nota)))) {
                 $result['api_status'] = 0;
                 $result['api_code'] = 401;
                 $result['api_message'] = 'Json tidak valid';
-            } elseif ($nota && !is_array(json_decode($nota))) {
+            } elseif ($nota && !is_array($json)) {
                 $result['api_status'] = 0;
                 $result['api_code'] = 401;
                 $result['api_message'] = 'Json harus berupa array';
             } else {
-                $json_message = '';
-                $json = json_decode($nota);
-                $total_nominal = 0;
-
                 /**
                  * VALIDATE JSON FILE
                  */
                 foreach ($json as $row) {
+                    if($row->type == 'delete') continue;
                     $total_nominal += (int)number_format($row->nominal, 0, '', '');
                 }
 
