@@ -402,7 +402,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
     public function hook_query_index(&$query)
     {
         //Your code here
-//        $query->whereIn('status',['Diproses','Ditolak','Disetujui']);
+        $query->whereIn('status',['Diproses','Ditolak','Disetujui']);
     }
 
     /*

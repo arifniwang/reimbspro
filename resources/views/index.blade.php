@@ -129,7 +129,7 @@
         <div class="col-md-7 col-sm-7 col-xs-12">
             <div class="info-box shadow">
                 <div class="box-header">
-                    Grafik Pengajuan
+                    Grafik Pengajuan Tahunan
                 </div>
                 <div class="box-body">
                     <div id="pengajuanTahunan" style="min-width: 100%; height: 300px;"></div>
@@ -229,10 +229,10 @@
                 enabled: false
             },
             tooltip: {
-                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                pointFormat: '{series.name}: <b>{point.y} ({point.percentage:.0f}%)</b>'
             },
             style: {
-                color: 'white',
+                color: 'black',
                 fontFamily: 'Helvetica',
                 border: 0
             },
@@ -244,12 +244,9 @@
                         distance: -50,
                         format: '<b>{point.name}</b>:<br> {point.y} ({point.percentage:.0f}%)',
                         style: {
-                            color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
-                        },
-                        style: {
-                            color: 'white',
+                            color: 'black',
                             fontFamily: 'Helvetica',
-                            border: 0
+                            border: false
                         }
                     },
                     cursor: 'pointer',
@@ -258,7 +255,7 @@
                 }
             },
             series: [{
-                name: 'Share',
+                name: 'Total',
                 data: {!! $persentase !!}
             }]
         });
