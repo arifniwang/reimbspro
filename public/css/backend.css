@@ -161,3 +161,9 @@ footer {
     border-color: #E75651 !important;
     color: #E75651;
 }
+
+.shadow {
+    -webkit-box-shadow: 0 5px 6px -6px #777;
+    -moz-box-shadow: 0 5px 6px -6px #777;
+    box-shadow: 0 5px 6px -6px #777;
+}
