@@ -34,10 +34,22 @@ class AdminSetelanAplikasiController extends \crocodicstudio\crudbooster\control
         # START COLUMNS DO NOT REMOVE THIS LINE
         $this->col = [];
         $this->col[] = array("label" => "Name", "name" => "name");
-        $this->col[] = array("label" => "Value", "name" => "value");
+        $this->col[] = array("label" => "Value", "name" => "value", "callback" => function ($row) {
+            if ($row->id == 1) {
+                $image = ($row->value == '' ? asset('vendor/crudbooster/avatar.jpg') : asset($row->value));
+                $result = '
+                <a data-lightbox="roadtrip" rel="group_{users}" title="Image: '.$row->name.'" href="' . $image . '">
+                    <img height="40px" src="' . $image . '">
+                </a>';
+
+                return $result;
+            } else {
+                return $row->value;
+            }
+        });
         # END COLUMNS DO NOT REMOVE THIS LINE
 
-        switch (Request::segment(4)){
+        switch (Request::segment(4)) {
             case '2':
                 $type = 'number';
                 break;
@@ -50,7 +62,7 @@ class AdminSetelanAplikasiController extends \crocodicstudio\crudbooster\control
         }
         # START FORM DO NOT REMOVE THIS LINE
         $this->form = [];
-        $this->form[] = ["label" => "Name", "name" => "name", "type" => "text", "required" => TRUE, "validation" => "required|string|min:3|max:70", "disabled"=>true];
+        $this->form[] = ["label" => "Name", "name" => "name", "type" => "text", "required" => TRUE, "validation" => "required|string|min:3|max:70", "disabled" => true];
         $this->form[] = ["label" => "Value", "name" => "value", "type" => $type, "required" => TRUE, "validation" => "required|string|min:5|max:5000"];
 
         # END FORM DO NOT REMOVE THIS LINE
