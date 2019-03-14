@@ -202,7 +202,7 @@
 
 @push('bottom')
     <script>
-        $('section.content-header').find('small').html('Dashboard')
+        $('section.content-header').find('small').html('Halaman Awal')
         $('section.content-header').find('small').show()
     </script>
 

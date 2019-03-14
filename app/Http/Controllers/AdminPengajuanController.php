@@ -144,7 +144,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $this->button_export = FALSE;
         $this->button_import = FALSE;
         $this->button_bulk_action = TRUE;
-        $this->sidebar_mode = "normal"; //normal,mini,collapse,collapse-mini
+        $this->sidebar_mode = "collapse"; //normal,mini,collapse,collapse-mini
         # END CONFIGURATION DO NOT REMOVE THIS LINE
 
         # START COLUMNS DO NOT REMOVE THIS LINE
@@ -165,8 +165,9 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             }
         });
         $this->col[] = array("label" => "Tangal Pengajuan", "name" => "created_at");
-
+        $this->col[] = array("label" => "Tangal Disetujui / Ditolak", "name" => "datetime_approval");
         # END COLUMNS DO NOT REMOVE THIS LINE
+
         # START FORM DO NOT REMOVE THIS LINE
         $this->form = [];
         $this->form[] = ["label" => "Pegawai", "name" => "id_users", "type" => "select2", "required" => TRUE,
@@ -177,7 +178,6 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             "validation" => "required|string|min:5|max:5000"];
         $this->form[] = ["label" => "Total", "name" => "total_nominal", "type" => "money", "required" => TRUE,
             "validation" => "required|min:1|max:255"];
-
         # END FORM DO NOT REMOVE THIS LINE
 
         /*
@@ -193,9 +193,10 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         |
         */
         $this->sub_module = array();
-        $this->sub_module[] = ['label' => '', 'path' => 'detail-pengajuan', 'parent_columns' => 'id_users,name,total_nominal,description',
-            'parent_columns_alias' => 'Pegawai,Nama Pengajuan,Total,Dekripsi', 'foreign_key' => 'id_pengajuan', 'button_color' => 'primary',
-            'button_icon' => 'fa fa-eye'];
+        $this->sub_module[] = ['label' => '', 'path' => 'detail-pengajuan',
+            'parent_columns' => 'id_users,name,total_nominal,status,created_at,description',
+            'parent_columns_alias' => 'Pegawai,Nama Pengajuan,Total,Status,Tanggal Pengajuan,Dekripsi',
+            'foreign_key' => 'id_pengajuan', 'button_color' => 'primary', 'button_icon' => 'fa fa-eye'];
 
 
         /*
@@ -284,9 +285,10 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $js = '';
         if (Request::segment(3) == '') {
             $js .= '
-                $("#table_dashboard").find("thead tr th:nth-child(8)").attr("width","225px");
-                $("#table_dashboard").find("thead tr th:nth-child(7)").attr("width","150px");
-                $("#table_dashboard").find("thead tr th:nth-child(4)").attr("width","300px");
+                $("#table_dashboard").find("thead tr th:nth-child(9)").attr("width","225px");
+                $("#table_dashboard").find("thead tr th:nth-child(8)").attr("width","205px");
+                $("#table_dashboard").find("thead tr th:nth-child(7)").attr("width","205px");
+                $("#table_dashboard").find("thead tr th:nth-child(4)").attr("width","250px");
             ';
         }
         $this->script_js = '' . $js;
@@ -402,7 +404,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
     public function hook_query_index(&$query)
     {
         //Your code here
-        $query->whereIn('status',['Diproses','Ditolak','Disetujui']);
+        $query->whereIn('status', ['Diproses', 'Ditolak', 'Disetujui']);
     }
 
     /*
