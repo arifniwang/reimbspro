@@ -43,7 +43,8 @@ class ApiHistoryController extends \crocodicstudio\crudbooster\controllers\ApiCo
         if ($status == ''){
             $pengajuan = $pengajuan->whereIn('status',['Diproses','Disetujui','Ditolak']);
         }else{
-            $pengajuan = $pengajuan->where('status',$status);
+            $status = explode('|',$status);
+            $pengajuan = $pengajuan->whereIn('status',$status);
         }
         $pengajuan = $pengajuan->paginate(20);
 

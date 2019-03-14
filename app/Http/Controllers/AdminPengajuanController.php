@@ -130,7 +130,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $this->table = "pengajuan";
         $this->title_field = "name";
         $this->limit = 20;
-        $this->orderby = "id,desc";
+        $this->orderby = "strtotime,desc";
         $this->show_numbering = FALSE;
         $this->global_privilege = FALSE;
         $this->button_table_action = TRUE;
