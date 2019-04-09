@@ -126,6 +126,8 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
 
     public function cbInit()
     {
+        $segment = Request::segment(3);
+
         # START CONFIGURATION DO NOT REMOVE THIS LINE
         $this->table = "pengajuan";
         $this->title_field = "name";
@@ -135,7 +137,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $this->global_privilege = FALSE;
         $this->button_table_action = TRUE;
         $this->button_action_style = "button_icon";
-        $this->button_add = FALSE;
+        $this->button_add = TRUE;
         $this->button_delete = TRUE;
         $this->button_edit = FALSE;
         $this->button_detail = FALSE;
@@ -174,9 +176,18 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
             "validation" => "required|integer|min:0", "datatable" => "users,name"];
         $this->form[] = ["label" => "Nama Pengajuan", "name" => "name", "type" => "text", "required" => TRUE,
             "validation" => "required|string|min:3|max:70", "placeholder" => "You can only enter the letter only"];
-        $this->form[] = ["label" => "Deskripsi", "name" => "description", "type" => "textarea", "required" => TRUE,
-            "validation" => "required|string|min:5|max:5000"];
-        $this->form[] = ["label" => "Total", "name" => "total_nominal", "type" => "money", "required" => TRUE,
+        $this->form[] = ["label" => "Deskripsi", "name" => "description", "type" => "textarea"];
+
+        if ($segment == 'add') {
+            $columns[] = ['label' => 'Gambar', 'name' => 'image', 'type' => 'upload'];
+            $columns[] = ['label' => 'Tanggal', 'name' => 'date', 'type' => 'text', 'required' => true];
+            $columns[] = ['label' => 'Kategori', 'name' => 'id_kategori', 'type' => 'select', 'datatable' => 'kategori,name', 'required' => true];
+            $columns[] = ['label' => 'Nominal', 'name' => 'nominal', 'type' => 'number', 'required' => true];
+            $columns[] = ['label' => 'Deskripsi', 'name' => 'description', 'type' => 'text'];
+            $this->form[] = ['label' => 'Detail Pengajuan', 'name' => 'pengajuan_detail', 'type' => 'child', 'columns' => $columns, 'table' => 'pengajuan_detail', 'foreign_key' => 'id_pengajuan'];
+        }
+
+        $this->form[] = ["label" => "Total", "name" => "total_nominal", "type" => "number", "required" => TRUE, 'readonly' => TRUE,
             "validation" => "required|min:1|max:255"];
         # END FORM DO NOT REMOVE THIS LINE
 
@@ -291,7 +302,34 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
                 $("#table_dashboard").find("thead tr th:nth-child(4)").attr("width","250px");
             ';
         }
-        $this->script_js = '' . $js;
+        $this->script_js = '
+            $(document).ready(function(){
+                $("#detailpengajuandate").datepicker({
+                    format: \'yyyy-mm-dd\',
+                    language: \'id\',
+                    autoclose: true
+                });
+                $("#detailpengajuandate").attr("readonly",true);
+                $("#detailpengajuannominal").attr("min",0);
+                
+                function calculateTotal(){
+                    let total = 0;
+                    $("#table-detailpengajuan").find("tbody").find("tr").find("td:nth-child(4)").each(function(){
+                        let text = $(this).text();
+                        text = parseInt(text);
+                        total += text;
+                    })
+                    
+                    $("#total_nominal").val(total);
+                }
+                
+                $("#btn-add-table-detailpengajuan").on("click",function(){
+                    calculateTotal()
+                })
+                
+                calculateTotal();
+            })
+        ' . $js;
 
 
         /*
@@ -428,7 +466,8 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
     public function hook_before_add(&$postdata)
     {
         //Your code here
-
+        $postdata['strtotime'] = strtotime($postdata['created_at']);
+        $postdata['time_server'] = $postdata['created_at'];
     }
 
     /*
@@ -441,7 +480,34 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
     public function hook_after_add($id)
     {
         //Your code here
+        $detailpengajuan_image = Request::input('detailpengajuan-image');
+        $detailpengajuan_date = Request::input('detailpengajuan-date');
+        $detailpengajuan_id_kategori = Request::input('detailpengajuan-id_kategori');
+        $detailpengajuan_nominal = Request::input('detailpengajuan-nominal');
+        $detailpengajuan_description = Request::input('detailpengajuan-description');
 
+        $save = [];
+        $total_nominal = 0;
+        $id = 1;
+        for ($i = 0; $i < count($detailpengajuan_date); $i++) {
+            $total_nominal += $detailpengajuan_nominal[$i];
+
+            $push['created_at'] = date('Y-m-d H:i:s');
+            $push['id_pengajuan'] = $id;
+            $push['image'] = $detailpengajuan_image[$i];
+            $push['date'] = $detailpengajuan_date[$i];
+            $push['nominal'] = $detailpengajuan_nominal[$i];
+            $push['id_kategori'] = $detailpengajuan_id_kategori[$i];
+            $push['description'] = $detailpengajuan_description[$i];
+            $save[] = $push;
+        }
+        DB::table('pengajuan_detail')->insert($save);
+
+        $update['updated_at'] = date('Y-m-d H:i:s');
+        $update['total_nominal'] = $total_nominal;
+        DB::table('pengajuan')->where('id',$id)->update($update);
+
+        CRUDBooster::redirect(CRUDBooster::mainpath('approve/' . $id), 'success', 'success');
     }
 
     /*
