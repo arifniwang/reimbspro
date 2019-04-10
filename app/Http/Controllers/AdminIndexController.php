@@ -92,7 +92,7 @@ class AdminIndexController extends \crocodicstudio\crudbooster\controllers\CBCon
         $grafik_pemakaian = [];
         $grafik_anggaran = [];
         $start = strtotime('2019-01-01');
-        $end = strtotime('2019-03-31');
+        $end = strtotime($now);
         while($start < $end)
         {
             $year = date('Y', $start);
