@@ -451,7 +451,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
                 ->pluck('id')
                 ->toArray();
 
-            $query->whereNotIn('id_user',$testing_user);
+            $query->whereNotIn('id_users',$testing_user);
         }
     }
 
