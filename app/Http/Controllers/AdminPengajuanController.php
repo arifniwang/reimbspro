@@ -443,6 +443,16 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
     {
         //Your code here
         $query->whereIn('status', ['Diproses', 'Ditolak', 'Disetujui']);
+
+        if(!CRUDBooster::isSuperadmin()){
+            $testing_user = DB::table('users')
+                ->whereNull('deleted_at')
+                ->where('testing',1)
+                ->pluck('id')
+                ->toArray();
+
+            $query->whereNotIn('id_user',$testing_user);
+        }
     }
 
     /*
