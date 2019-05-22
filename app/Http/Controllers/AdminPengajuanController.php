@@ -468,6 +468,8 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         //Your code here
         $postdata['strtotime'] = strtotime($postdata['created_at']);
         $postdata['time_server'] = $postdata['created_at'];
+        $postdata['status'] = 'Diproses';
+
     }
 
     /*
@@ -507,7 +509,7 @@ class AdminPengajuanController extends \crocodicstudio\crudbooster\controllers\C
         $update['total_nominal'] = $total_nominal;
         DB::table('pengajuan')->where('id',$id)->update($update);
 
-        CRUDBooster::redirect(CRUDBooster::mainpath('approve/' . $id), 'success', 'success');
+        self::getApprove($id);
     }
 
     /*
