@@ -26,7 +26,7 @@ class ApiDraftController extends \crocodicstudio\crudbooster\controllers\ApiCont
         $item = [];
 
         $pengajuan = DB::table('pengajuan')
-            ->select('id', 'total_nominal as nominal', 'name', 'description', 'status', 'created_at')
+            ->select('id', 'total_nominal as nominal', 'name', 'description', 'status', 'created_at','updated_at')
             ->whereNull('deleted_at')
             ->where('id_users', $id)
             ->where('status','Draft')
@@ -38,7 +38,7 @@ class ApiDraftController extends \crocodicstudio\crudbooster\controllers\ApiCont
         foreach ($pengajuan as $row) {
             $nota = DB::table('pengajuan_detail')
                 ->select('pengajuan_detail.id', 'pengajuan_detail.image', 'pengajuan_detail.date', 'pengajuan_detail.nominal',
-                    'pengajuan_detail.description', 'pengajuan_detail.id_kategori', 'kategori.name as kategori')
+                    'pengajuan_detail.description', 'pengajuan_detail.id_kategori','pengajuan_detail.updated_at','pengajuan_detail.deleted_at', 'kategori.name as kategori')
                 ->join('kategori', 'kategori.id', '=', 'pengajuan_detail.id_kategori')
                 ->whereNull('pengajuan_detail.deleted_at')
                 ->where('pengajuan_detail.id_pengajuan', $row->id)

@@ -70,11 +70,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                  */
                 foreach ($json as $row) {
                     if ($row->type == 'new') {
-                        if ($row->image == '') {
-                            $valid_json = false;
-                            $json_message .= 'Image nota tidak boleh kosong';
-                            break;
-                        } elseif ($row->date == '') {
+                        if ($row->date == '') {
                             $valid_json = false;
                             $json_message .= 'Tanggal nota tidak boleh kosong';
                             break;
@@ -90,11 +86,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
                             $total_nominal += (int)number_format($row->nominal, 0, '', '');
                         }
                     } elseif ($row->type == 'update' || $row->type == 'existing') {
-                        if ($row->image == '') {
-                            $valid_json = false;
-                            $json_message .= 'Image nota tidak boleh kosong';
-                            break;
-                        } elseif ($row->date == '') {
+                        if ($row->date == '') {
                             $valid_json = false;
                             $json_message .= 'Tanggal nota tidak boleh kosong';
                             break;
