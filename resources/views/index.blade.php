@@ -7,7 +7,7 @@
 		
 		#refreshSaldo {
 			position: absolute;
-			left: 450px;
+			left: 500px;
 			top: 70px;
 		}
 		
