@@ -280,7 +280,7 @@
 				text: ''
 			},
 			xAxis: {
-				categories: ['Januari', 'Febuari', 'Maret', 'April', 'Mei']
+				categories: ['Januari', 'Febuari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 			},
 			credits: {
 				enabled: false
