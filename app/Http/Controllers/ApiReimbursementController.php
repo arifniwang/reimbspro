@@ -112,7 +112,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 				if ($check > 0) {
 					$result['api_status'] = 0;
 					$result['api_code'] = 401;
-					$result['api_message'] = 'Pengajuan gagal, data terduplicate';
+					$result['api_message'] = 'Pengajuan gagal, data duplicate';
 				} else {
 					if (!$valid_json) {
 						$result['api_status'] = 0;
@@ -358,7 +358,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 				if ($check > 0) {
 					$result['api_status'] = 0;
 					$result['api_code'] = 401;
-					$result['api_message'] = 'Pengajuan gagal, data terduplicate';
+					$result['api_message'] = 'Pengajuan gagal, data duplicate';
 				} else {
 					/**
 					 * SAVE PENGAJUAN
