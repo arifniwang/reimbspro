@@ -35,6 +35,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 			$valid_json = CRUDBooster::isJSON($nota);
 			$now = date('Y-m-d H:i:s');
 			$created_at = (Request::input('created_at') == '' ? $now : date('Y-m-d H:i:s', strtotime(Request::input('created_at'))));
+			$id_pengajuan = Request::input('id_reimbursement');
 			
 			$users = DB::table('users')
 				->where('id', Request::input('id'))
@@ -108,6 +109,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 					->where('name', Request::input('name'))
 					->where('total_nominal', $total_nominal)
 					->whereDate('created_at', $created_at)
+					->where('id', '!=', $id_pengajuan)
 					->count();
 				if ($check > 0) {
 					$result['api_status'] = 0;
@@ -122,7 +124,6 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 						/**
 						 * SAVE PENGAJUAN
 						 */
-						$id_pengajuan = Request::input('id_reimbursement');
 						$save_pengajuan['time_server'] = $now;
 						$save_pengajuan['strtotime'] = strtotime($created_at);
 						$save_pengajuan['id_users'] = Request::input('id');
@@ -316,6 +317,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 				date('Y-m-d H:i:s', strtotime(Request::input('created_at'))));
 			$json = json_decode(file_get_contents($nota));
 			$total_nominal = 0;
+			$id_pengajuan = Request::input('id_reimbursement');
 			
 			$users = DB::table('users')
 				->where('id', Request::input('id'))
@@ -354,6 +356,7 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 					->where('name', Request::input('name'))
 					->where('total_nominal', $total_nominal)
 					->whereDate('created_at', $created_at)
+					->where('id', '!=', $id_pengajuan)
 					->count();
 				if ($check > 0) {
 					$result['api_status'] = 0;
@@ -363,7 +366,6 @@ class ApiReimbursementController extends \crocodicstudio\crudbooster\controllers
 					/**
 					 * SAVE PENGAJUAN
 					 */
-					$id_pengajuan = Request::input('id_reimbursement');
 					$save_pengajuan['time_server'] = $now;
 					$save_pengajuan['strtotime'] = strtotime($created_at);
 					$save_pengajuan['id_users'] = Request::input('id');
