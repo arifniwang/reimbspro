@@ -44,10 +44,10 @@ class ApiHomeController extends \crocodicstudio\crudbooster\controllers\ApiContr
 
         $pengajuan = DB::table('pengajuan')
             ->whereNull('deleted_at')
-            ->where('status', 'Disetujui')
+            ->where('status', 'Diproses')
             ->where('id_users', $id)
-            ->where('year', date('Y'))
-            ->where('month', number_format(date('m'), 0, '', ''))
+            // ->where('year', date('Y'))
+            // ->where('month', number_format(date('m'), 0, '', ''))
             ->sum('total_nominal');
 
         /**
